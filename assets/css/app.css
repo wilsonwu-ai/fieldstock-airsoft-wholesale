@@ -1,3 +1,22 @@
+/* Self-hosted variable fonts. Google Fonts is blocked behind the GFW and its
+   CDN intermittently 404s a JetBrains Mono variant, so the site ships its own.
+   All three latin subsets total ~173KB. */
+@font-face {
+  font-family: 'Archivo';
+  src: url('../fonts/archivo.woff2') format('woff2-variations');
+  font-weight: 100 900; font-stretch: 62% 125%; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('../fonts/inter.woff2') format('woff2-variations');
+  font-weight: 100 900; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('../fonts/jetbrains-mono.woff2') format('woff2-variations');
+  font-weight: 100 800; font-style: normal; font-display: swap;
+}
+
 /* FIELDSTOCK SUPPLY CO. — design system
    Tokens are measured values from the research pass (American MilSim, Ballahack,
    Ferro, Krytac, atlas.neuro2.ai). Do not tune them per-page. */
