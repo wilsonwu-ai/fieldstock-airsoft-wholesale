@@ -1,0 +1,805 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marking &amp; shipping compliance · Fieldstock Supply Co.</title>
+<meta name="description" content="Fieldstock's four-tier marking matrix, refused destinations, the 16 CFR Part 1272 citation correction and GCC content. A scoping summary from primary sources — not legal advice.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  /* ---- page-specific layout only. No token is redefined here. ---- */
+
+  .doc-hero { border-bottom: 1px solid var(--hairline); padding-block: clamp(52px, 7vw, 92px) clamp(34px, 4vw, 54px); }
+  .doc-hero h1 { font-size: clamp(2.1rem, 5vw, 3.9rem); max-width: 18ch; }
+  .doc-hero .lede { margin-top: 1.15rem; }
+  .doc-meta {
+    display: flex; flex-wrap: wrap; gap: .5rem 2.2rem; margin-top: 2rem;
+    font-family: var(--font-mono); font-size: .7rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-mute);
+  }
+  .doc-meta b { color: var(--text-2); font-weight: 500; }
+
+  /* ---- two-column document shell ---- */
+  .doc { display: block; padding-block: 0 clamp(64px, 8vw, 116px); }
+  /* Breakpoint is 1140, not 1000: at 1024 the 216px rail left only 658px of
+     content column and the five-column matrix (784px) scrolled. The rail may
+     only appear once the widest table still fits beside it — measured, not
+     guessed: 1140 gives an 823px content column against a 784px table. */
+  @media (min-width: 1140px) {
+    .doc { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: clamp(2.4rem, 4vw, 5rem); align-items: start; }
+  }
+
+  .toc { position: sticky; z-index: 40; }
+  .toc h2 {
+    font-family: var(--font-mono); font-variation-settings: normal; font-weight: 500;
+    font-size: .64rem; letter-spacing: .16em; color: var(--text-mute);
+    text-transform: uppercase; margin-bottom: .85rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; }
+  .toc a {
+    display: flex; gap: .6rem; align-items: baseline;
+    font-size: .82rem; color: var(--text-2); padding: .32rem 0 .32rem .7rem;
+    border-left: 1px solid var(--hairline); transition: color var(--t-fast), border-color var(--t-fast);
+  }
+  .toc a span { font-family: var(--font-mono); font-size: .64rem; color: var(--text-mute); flex: none; }
+  .toc a:hover { color: var(--text); border-left-color: var(--hairline-lit); }
+  .toc a[aria-current="true"] { color: var(--orange); border-left-color: var(--orange); }
+  .toc a[aria-current="true"] span { color: var(--orange); }
+  .toc-print { margin-top: 1.4rem; width: 100%; }
+
+  @media (max-width: 1139px) {
+    .toc {
+      top: 66px; background: var(--ground);
+      border-bottom: 1px solid var(--hairline);
+      margin-inline: calc(var(--gutter) * -1); padding: .55rem var(--gutter);
+    }
+    .toc h2, .toc-print { display: none; }
+    .toc ol { display: flex; gap: .2rem; overflow-x: auto; scrollbar-width: thin; }
+    .toc a { border-left: 0; border-bottom: 1px solid transparent; white-space: nowrap; padding: .35rem .55rem; }
+    .toc a[aria-current="true"] { border-bottom-color: var(--orange); }
+  }
+  @media (min-width: 1140px) { .toc { top: 92px; } }
+
+  /* ---- sections ---- */
+  .doc-section { scroll-margin-top: 132px; padding-block: clamp(38px, 5vw, 62px); border-bottom: 1px solid var(--hairline); }
+  .doc-section:first-child { padding-top: clamp(30px, 4vw, 48px); }
+  .doc-section:last-child { border-bottom: 0; }
+  .sec-head { display: flex; gap: 1rem; align-items: baseline; margin-bottom: .9rem; }
+  .sec-num {
+    font-family: var(--font-mono); font-size: .7rem; letter-spacing: .14em;
+    color: var(--orange); flex: none; padding-top: .18rem;
+  }
+  .doc-section h2 { font-size: clamp(1.4rem, 2.6vw, 2.05rem); }
+  .doc-section h3 { margin-top: 2.1rem; margin-bottom: .7rem; font-size: 1rem; }
+  .doc-section p { max-width: 74ch; color: var(--text-2); font-size: .93rem; }
+  .doc-section p.tight { margin-bottom: .5rem; }
+  .doc-section strong { color: var(--text); font-weight: 600; }
+
+  .caption {
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--text-mute); margin: .7rem 0 0;
+    line-height: 1.55; max-width: 88ch;
+  }
+  /* A methods note is prose, not a label — mono at this length is a wall. */
+  .caption.method {
+    font-family: var(--font-body); font-size: .82rem; text-transform: none;
+    letter-spacing: 0; color: var(--text-mute); margin-top: .9rem;
+  }
+  .caption.method strong { color: var(--text-2); }
+
+  /* body links inside the document body must not rely on colour alone */
+  .doc-section a:not(.btn), .caption a {
+    color: var(--orange); text-decoration: underline;
+    text-decoration-thickness: 1px; text-underline-offset: 3px;
+  }
+
+  /* The scroll container is keyboard-reachable — see the role/tabindex in markup. */
+  .table-scroll { border: 1px solid var(--hairline); margin-top: 1.3rem; }
+  /* Only column headers get the filled ground. Row headers are content, not chrome. */
+  table.data thead th { background: var(--surface-1); }
+  table.data tbody tr:last-child td,
+  table.data tbody tr:last-child th { border-bottom: 0; }
+  table.data td { vertical-align: top; color: var(--text-2); }
+  table.data tbody th[scope="row"] {
+    vertical-align: top; font-family: var(--font-body); font-size: .88rem;
+    font-weight: 600; letter-spacing: 0; text-transform: none;
+    color: var(--text); white-space: normal; background: transparent;
+  }
+  table.data tbody th.cell-tier {
+    font-family: var(--font-mono); font-size: .74rem; font-weight: 500;
+    letter-spacing: .05em; text-transform: uppercase; white-space: nowrap;
+  }
+  table.data tbody th.sku-cell {
+    font-family: var(--font-mono); font-size: .78rem; font-weight: 500;
+    letter-spacing: .02em; white-space: nowrap;
+  }
+  .cell-cite { font-family: var(--font-mono); font-size: .74rem; line-height: 1.5; color: var(--text-mute); }
+  /* Floors, not targets — the table auto-distributes whatever is left over.
+     At the previous 150/230/300 the five-column matrix needed 1060px against a
+     ~990px content column at 1440px viewport, so the Authority and Exposure
+     columns (including the $10,000-per-violation figure) were scrolled out of
+     sight on an ordinary desktop. 120/150/210 sums to 750px for the five-column
+     matrix, which fits the ~794px content column of a 1180px laptop window and
+     leaves the auto-layout free to spend anything wider. */
+  .w-min { min-width: 120px; }
+  .w-mid { min-width: 150px; }
+  .w-max { min-width: 210px; }
+
+  /* The default light scrollbar reads as a seam across a dark table. */
+  .table-scroll { scrollbar-width: thin; scrollbar-color: var(--hairline-lit) var(--surface-1); }
+
+  /* ---- ordered spec list ---- */
+  ol.spec { counter-reset: s; list-style: none; margin: 1.2rem 0 0; padding: 0; border-top: 1px solid var(--hairline); }
+  ol.spec li {
+    counter-increment: s; position: relative; padding: .85rem 0 .85rem 2.6rem;
+    border-bottom: 1px solid var(--hairline); font-size: .91rem; color: var(--text-2); max-width: 82ch;
+  }
+  ol.spec li::before {
+    content: counter(s, decimal-leading-zero); position: absolute; left: 0; top: .95rem;
+    font-family: var(--font-mono); font-size: .66rem; letter-spacing: .1em; color: var(--orange);
+  }
+  ol.spec li b { color: var(--text); font-weight: 600; }
+
+  /* ---- stop callout: reuses the --danger token, adds no hue ---- */
+  .stop {
+    border-left: 2px solid var(--danger); background: var(--surface-1);
+    padding: 1rem 1.15rem; margin-top: 1.3rem;
+  }
+  /* --danger at 11px on --surface-1 is 3.5:1 and fails AA for small text.
+     Lifted toward --text: same hue, ~6:1, no new token introduced. */
+  .stop-head {
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .16em;
+    text-transform: uppercase; margin-bottom: .5rem;
+    color: color-mix(in srgb, var(--danger) 55%, var(--text));
+  }
+  .stop p { margin-bottom: 0; font-size: .88rem; }
+  .note { margin-top: 1.3rem; }
+  .note p:last-child { margin-bottom: 0; }
+  .note-head {
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--orange); margin-bottom: .5rem;
+  }
+
+  /* ---- correction: struck vs controlling ---- */
+  .cite-swap { display: grid; gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); margin-top: 1.4rem; }
+  @media (min-width: 700px) { .cite-swap { grid-template-columns: 1fr 1fr; } }
+  .cite-cell { background: var(--ground); padding: 1.15rem 1.2rem; }
+  .cite-cell h3 {
+    font-family: var(--font-mono); font-variation-settings: normal; font-weight: 500;
+    font-size: .66rem; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--text-mute); margin: 0 0 .7rem;
+  }
+  .cite-code { font-family: var(--font-mono); font-size: 1.02rem; letter-spacing: .01em; line-height: 1.3; }
+  .cite-cell.dead .cite-code { color: var(--text-mute); text-decoration: line-through; text-decoration-color: var(--danger); }
+  .cite-cell.live .cite-code { color: var(--orange); }
+  .cite-cell p { font-size: .84rem; margin: .7rem 0 0; max-width: none; }
+
+  /* ---- key/value strip ---- */
+  /* margin is set on all sides: .kv is a <dl> and the UA sheet gives it 1em bottom. */
+  .kv { display: grid; gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); margin: 1.4rem 0 0; }
+  @media (min-width: 620px) { .kv { grid-template-columns: repeat(3, 1fr); } }
+  .kv > div { background: var(--ground); padding: 1rem 1.1rem; }
+  .kv dt {
+    font-family: var(--font-mono); font-size: .66rem; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--text-mute); margin-bottom: .4rem;
+  }
+  .kv dd { margin: 0; font-family: var(--font-mono); font-size: .95rem; color: var(--text); }
+  .kv dd small { display: block; font-family: var(--font-body); font-size: .78rem; color: var(--text-2); margin-top: .3rem; letter-spacing: 0; }
+
+  /* ---- live SKU proof table ---- */
+  .sku-thumb { width: 54px; height: 40px; object-fit: contain; background: var(--surface-1); }
+  td.thumb-cell { width: 54px; padding-right: 0; }
+
+  /* ---- sign-off ---- */
+  .signoff { display: grid; gap: 1.6rem; margin-top: 1.5rem; }
+  @media (min-width: 780px) { .signoff { grid-template-columns: 1fr 1fr; } }
+  .signoff-block { border: 1px solid var(--hairline); padding: 1.15rem 1.2rem; }
+  .signoff-block h3 {
+    font-family: var(--font-mono); font-variation-settings: normal; font-weight: 500;
+    font-size: .66rem; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--text-mute); margin: 0 0 .7rem;
+  }
+  .signoff-block p { font-size: .86rem; margin-bottom: 0; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  @media print {
+    /* The page is dark-first. Printing it as-is puts near-black panels (.kv,
+       .cite-cell, .stop) on white paper and washes body copy out to light grey.
+       Repoint the existing tokens at the light values already in app.css rather
+       than restyling every component. No new hue is introduced; --orange is
+       darkened only because #FF6A00 on white is 2.9:1 and unreadable in ink. */
+    :root {
+      --ground:       #FFFFFF;
+      --surface-1:    #F1EFEA;
+      --surface-2:    #FFFFFF;
+      --hairline:     #B9B4A8;
+      --hairline-lit: #8E8A7F;
+      --text:         #141816;
+      --text-2:       #333832;
+      --text-mute:    #55594F;
+      --orange:       #A83F00;
+      --orange-wash:  #FBF1E7;
+      --danger:       #9B1B19;
+    }
+    .toc, .site-header, .utility, .site-footer, .toc-print { display: none !important; }
+    body { background: #FFFFFF; color: #141816; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .doc-section { break-inside: avoid; border-bottom-color: var(--hairline); }
+    .table-scroll { overflow: visible !important; }
+    .doc-hero { padding-block: 0 24px; }
+    a[href]::after { content: ''; }
+  }
+</style>
+<!-- .reveal starts at opacity 0 and is un-hidden by JS. Without this the entire
+     document body is invisible to a reader with JS off. -->
+<noscript><style>.reveal { opacity: 1 !important; transform: none !important; }</style></noscript>
+</head><body>
+<div id="chrome-header"></div>
+
+<main>
+
+  <!-- ============ HERO ============ -->
+  <section class="doc-hero">
+    <div class="wrap">
+      <p class="eyebrow">Compliance pack · Rev. 2026.08</p>
+      <h1>Every unit we ship is marked for the state it ships to.</h1>
+      <p class="lede">
+        Marking is not a sticker we add at the end. It is a per-destination rule set applied at pick
+        and pack, and it is the reason a dealer in Sacramento and a dealer in Buffalo receive
+        physically different goods off the same purchase order.
+      </p>
+      <div class="doc-meta">
+        <span>Last reviewed <b>2026-08-13</b></span>
+        <span>Controlling federal rule <b>16 CFR Part 1272</b></span>
+        <span>Marking tiers <b>4</b></span>
+        <span>Blocked jurisdictions <b>4</b></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap doc">
+
+    <!-- ============ ANCHOR NAV ============ -->
+    <aside class="toc">
+      <h2 id="toc-label">On this page</h2>
+      <nav aria-labelledby="toc-label">
+        <ol>
+          <li><a href="#matrix"><span>01</span>Marking matrix</a></li>
+          <li><a href="#federal"><span>02</span>Five federal markings</a></li>
+          <li><a href="#blocked"><span>03</span>Do not ship</a></li>
+          <li><a href="#citation"><span>04</span>Citation correction</a></li>
+          <li><a href="#gcc"><span>05</span>Certificate of conformity</a></li>
+          <li><a href="#age"><span>06</span>Age of sale</a></li>
+          <li><a href="#skus"><span>07</span>What this covers</a></li>
+          <li><a href="#counsel"><span>08</span>Review &amp; disclaimer</a></li>
+        </ol>
+      </nav>
+      <button type="button" class="btn btn-ghost btn-sm toc-print" id="printBtn">Print this page</button>
+    </aside>
+
+    <div>
+
+      <!-- ============ 01 MATRIX ============ -->
+      <section class="doc-section reveal" id="matrix" aria-labelledby="h-matrix">
+        <div class="sec-head"><span class="sec-num">01</span><h2 id="h-matrix">The four-tier marking matrix</h2></div>
+        <p>
+          A destination address resolves to exactly one tier before the pick list prints. Tiers are
+          cumulative: Tier 2 is the federal marking <em>plus</em> California's additions, and Tier 3
+          is a separate conjunctive test that a federally compliant unit will fail on its own.
+        </p>
+
+        <div class="table-scroll" role="region" tabindex="0" aria-label="Table 1 — marking requirements by destination tier (scrollable)">
+          <table class="data">
+            <caption class="sr-only">Table 1 — marking requirements by destination tier</caption>
+            <thead>
+              <tr>
+                <th scope="col" class="w-min">Tier</th>
+                <th scope="col" class="w-min">Scope</th>
+                <th scope="col" class="w-max">Marking required at pack</th>
+                <th scope="col" class="w-mid">Authority</th>
+                <th scope="col" class="w-mid">Exposure / note</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="cell-tier">Tier 1<br><span class="tag">Federal baseline</span></th>
+                <td>Approximately 40 states with no additional state marking statute.</td>
+                <td>
+                  Blaze-orange muzzle marking, permanently affixed, in the specified color
+                  <strong>SAE AMS STD 595A-17 no. 12199</strong>. One of the five permitted
+                  constructions in §&thinsp;1272.3 must be present — see section 02.
+                </td>
+                <td class="cell-cite">16 CFR Part 1272<br>(Consumer Product Safety Commission)</td>
+                <td>Federal floor. No state on this tier relaxes it; several add labeling or point-of-sale age rules that fall on the retailer rather than on us.</td>
+              </tr>
+              <tr>
+                <th scope="row" class="cell-tier">Tier 2<br><span class="tag">California</span></th>
+                <td>California destinations, statewide.</td>
+                <td>
+                  Federal marking <strong>plus</strong> a fluorescent trigger guard
+                  <strong>plus</strong> two fluorescent bands of not less than
+                  <strong>2&nbsp;cm</strong> each, non-removable, applied to the exterior of the
+                  device. All three conditions, not any one of them.
+                </td>
+                <td class="cell-cite">Cal. Penal Code § 16700(b)(4), as amended by AB 1798</td>
+                <td>Civil exposure of up to <strong>$10,000 per violation</strong> under Cal. Penal Code § 20165. Per violation, not per shipment.</td>
+              </tr>
+              <tr>
+                <th scope="row" class="cell-tier">Tier 3<br><span class="tag">New York State</span></th>
+                <td>New York State destinations outside New York City.</td>
+                <td>
+                  The strictest marking regime in the country. Four requirements applied
+                  <strong>conjunctively</strong> — a unit satisfying three of four is
+                  non-compliant. Full test in section 03.
+                </td>
+                <td class="cell-cite">N.Y. Gen. Bus. Law Art. 39-B §§ 871–872 <em>et seq.</em></td>
+                <td>Actively enforced against out-of-state online sellers shipping into New York. Enforcement has targeted the seller, not the buyer.</td>
+              </tr>
+              <tr>
+                <th scope="row" class="cell-tier">Tier 4<br><span class="tag">Do not ship</span></th>
+                <td>New Jersey statewide; New York City; Chicago; Philadelphia.</td>
+                <td>No marking configuration makes the shipment lawful. The order is blocked at cart, before payment.</td>
+                <td class="cell-cite">N.J.S.A. 2C:39-1(f)<br>NYC Admin. Code § 10-131(g)<br>Chicago Mun. Code 4-144-190<br>Phila. Code (section not pinned — see section 03)</td>
+                <td>Blocked by ZIP code, not by state selection. See section 03.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="caption">Table 1 — destination tier resolution. Cumulative; one tier per address.</p>
+
+        <div class="note">
+          <div class="note-head">Why this is on a public page</div>
+          <p>
+            The marking regime is real operating overhead. It is also the reason a grey-market
+            importer cannot service a California or New York retailer at our price without either
+            eating a rework cost or shipping something the retailer cannot legally sell. We publish
+            the matrix because the work is the product.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ 02 FEDERAL ============ -->
+      <section class="doc-section reveal" id="federal" aria-labelledby="h-federal">
+        <div class="sec-head"><span class="sec-num">02</span><h2 id="h-federal">Five federal markings, not one</h2></div>
+        <p>
+          The most common error in supplier paperwork is treating the orange muzzle plug as the only
+          way to satisfy the federal rule. <strong>16 CFR § 1272.3 permits five distinct
+          constructions.</strong> Any one of them is compliant on its own at the federal level, and
+          several of them are cheaper or more durable than a plug on the SKUs we carry.
+        </p>
+
+        <ol class="spec">
+          <li><b>Blaze-orange muzzle plug</b> — a solid plug of the specified color, permanently affixed in the muzzle end of the barrel, recessed no more than 6&nbsp;mm.</li>
+          <li><b>Blaze-orange barrel band</b> — a ring of the specified color covering the circumference of the barrel at the muzzle end, in place of a plug.</li>
+          <li><b>Entire exterior surface in blaze orange</b> — the whole device finished in the specified color rather than a localized marking.</li>
+          <li><b>Entire exterior surface in white, bright red, bright orange, bright yellow, bright green, bright blue, bright pink or bright purple</b> — singly, or as the predominant color in combination with other colors in any pattern.</li>
+          <li><b>Transparent or translucent construction</b> — the device constructed of materials through which the internal components are visible, which satisfies the rule without any applied marking at all.</li>
+        </ol>
+
+        <dl class="kv">
+          <div><dt>Specified color</dt><dd>SAE AMS STD 595A-17<br>no. 12199<small>The federal rule names one exact orange. "Close enough" orange is a finding.</small></dd></div>
+          <div><dt>Rule</dt><dd>16 CFR § 1272.3<small>Marking of toy, look-alike and imitation firearms.</small></dd></div>
+          <div><dt>Permitted constructions</dt><dd>5<small>Any one satisfies the federal floor. State tiers stack on top.</small></dd></div>
+        </dl>
+        <p class="caption">Federal marking parameters.</p>
+      </section>
+
+      <!-- ============ 03 BLOCKED ============ -->
+      <section class="doc-section reveal" id="blocked" aria-labelledby="h-blocked">
+        <div class="sec-head"><span class="sec-num">03</span><h2 id="h-blocked">Do not ship — blocked by ZIP, not by state</h2></div>
+
+        <div class="stop">
+          <div class="stop-head">Blocked at cart, before payment</div>
+          <p>
+            <strong>New Jersey (statewide) · New York City · Chicago · Philadelphia.</strong>
+            These destinations are refused by the cart. There is no marking configuration, no waiver
+            on file and no dealer tier that opens them. A dealer with a valid resale certificate in
+            any of these jurisdictions still cannot receive a gun SKU from us.
+          </p>
+        </div>
+
+        <div class="table-scroll" role="region" tabindex="0" aria-label="Table 2 — refused destinations (scrollable)">
+          <table class="data">
+            <caption class="sr-only">Table 2 — refused destinations and the authority that blocks each one</caption>
+            <thead>
+              <tr>
+                <th scope="col" class="w-min">Jurisdiction</th>
+                <th scope="col" class="w-mid">Authority</th>
+                <th scope="col" class="w-max">Why it blocks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">New Jersey <span class="tag">Statewide</span></th>
+                <td class="cell-cite">N.J.S.A. 2C:39-1(f)</td>
+                <td>The statutory definition of "firearm" expressly includes any gun that expels a projectile by spring, elastic band, compressed air or compressed gas. An AEG or gas shotgun is therefore a firearm as a matter of New Jersey law, and shipping one into the state is a firearm transfer, not a toy sale.</td>
+              </tr>
+              <tr>
+                <th scope="row">New York City <span class="tag">5 boroughs</span></th>
+                <td class="cell-cite">NYC Admin. Code § 10-131(g)</td>
+                <td>The city rule is narrower than the state rule and independently binding. A unit built to the New York State four-part test is still non-compliant at a Manhattan address. State-level compliance does not reach the boroughs.</td>
+              </tr>
+              <tr>
+                <th scope="row">Chicago <span class="tag">City limits</span></th>
+                <td class="cell-cite">Chicago Mun. Code 4-144-190</td>
+                <td>The clearest genuine ban of the four. The ordinance prohibits the sale of replica and air-powered firearms inside the city, without a marking-based exemption to build to.</td>
+              </tr>
+              <tr>
+                <th scope="row">Philadelphia <span class="tag">City limits</span></th>
+                <td class="cell-cite">Phila. Code — section not pinned</td>
+                <td>Municipal restriction on imitation and air-powered firearms that operates independently of Pennsylvania state law, which is otherwise a Tier 1 state. <strong>We have not pinned the controlling section number</strong>, so Philadelphia is blocked on the conservative reading rather than on a citation we can hand you. This is the weakest citation on the page and is flagged for counsel first.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="caption">Table 2 — refused destinations.</p>
+
+        <h3>The New York State four-part conjunctive test</h3>
+        <p class="tight">
+          For destinations in New York State <em>outside</em> the five boroughs, all four of the
+          following must be true of the unit at the same time. This is the test that a federally
+          compliant unit fails, because the federal rule is satisfied by any one of five
+          constructions and New York requires four in combination.
+        </p>
+        <ol class="spec">
+          <li><b>Exterior color or transparency</b> — the entire exterior surface white, bright red, bright orange, bright yellow, bright green, bright blue, bright pink or bright purple, singly or as the predominant color in any pattern; or the device constructed entirely of transparent or translucent materials.</li>
+          <li><b>Closed barrel</b> — the barrel closed with the same material the device is constructed from, for a distance of not less than 6&nbsp;mm from the muzzle end.</li>
+          <li><b>Muzzle marking</b> — a blaze-orange or bright-orange marking permanently affixed at the muzzle end.</li>
+          <li><b>Full-length barrel stripe</b> — a blaze-orange stripe running the entire length of the barrel on both sides and along the top. This is the requirement that most imported stock does not carry and cannot be retrofitted onto cleanly.</li>
+        </ol>
+
+        <h3>Why ZIP, and why prefix matching is not enough</h3>
+        <p class="tight">
+          Three of the four blocked jurisdictions are municipal. A state dropdown cannot express
+          them. A New York State order that satisfies the whole Art. 39-B test is still unlawful the
+          moment the ship-to line reads a Manhattan address, and a Pennsylvania order is fine until
+          the ZIP is a Philadelphia one.
+        </p>
+        <p>
+          Prefix matching is also insufficient, and this is where most implementations quietly leak.
+          The <span class="mono">110</span>–<span class="mono">116</span> range contains both Queens
+          ZIP codes, which are blocked, and Nassau County ZIP codes, which are not. We match the
+          full five-digit code against a maintained list rather than against a prefix, and the list
+          is reviewed on the same cycle as this page.
+        </p>
+
+        <div class="note">
+          <div class="note-head">Operator note</div>
+          <p>
+            The block is enforced at cart, not at the warehouse. A dealer never has an order accepted
+            and then reversed, and no card is authorized against a shipment we cannot fulfill.
+            Parts, magazines and accessories that are not themselves imitation firearms are not
+            affected by any of the four tiers.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ 04 CITATION ============ -->
+      <section class="doc-section reveal" id="citation" aria-labelledby="h-citation">
+        <div class="sec-head"><span class="sec-num">04</span><h2 id="h-citation">Citation correction: 16 CFR 1272, not 15 CFR 272</h2></div>
+        <p>
+          The federal marking rule moved. A large share of supplier agreements, distributor terms
+          and compliance annexes still in circulation cite the Department of Commerce rule at
+          <span class="mono">15 CFR Part 272</span>. That rule was <strong>removed effective
+          2026-02-19</strong>. Citing it today is citing a rule that no longer exists.
+        </p>
+
+        <div class="cite-swap">
+          <div class="cite-cell dead">
+            <h3>Removed — do not cite</h3>
+            <div class="cite-code">15 CFR Part 272</div>
+            <p>Department of Commerce. Removed effective 2026-02-19. Any agreement, packing note or dealer annex still pointing here is pointing at nothing, and an indemnity drafted against it is drafted against a repealed obligation.</p>
+          </div>
+          <div class="cite-cell live">
+            <h3>Controlling</h3>
+            <div class="cite-code">16 CFR Part 1272</div>
+            <p>Consumer Product Safety Commission. Marking of toy, look-alike and imitation firearms, including the specified color SAE AMS STD 595A-17 no. 12199 and the five permitted constructions in § 1272.3.</p>
+          </div>
+        </div>
+
+        <p style="margin-top:1.4rem">
+          Practical consequence for a dealer: if your existing distributor's paperwork cites
+          <span class="mono">15 CFR 272</span>, that paperwork has not been reviewed since at least
+          February 2026. It is a cheap and reliable test of whether a supplier's compliance posture
+          is maintained or inherited.
+        </p>
+      </section>
+
+      <!-- ============ 05 GCC ============ -->
+      <section class="doc-section reveal" id="gcc" aria-labelledby="h-gcc">
+        <div class="sec-head"><span class="sec-num">05</span><h2 id="h-gcc">General Certificate of Conformity</h2></div>
+        <p>
+          A General Certificate of Conformity is the importer's written certification that a product
+          subject to a Consumer Product Safety Commission rule complies with that rule. For imported
+          goods the obligation sits with the <strong>importer of record</strong> — which is us, not
+          the factory and not the retailer. The certificate must be furnished to distributors and
+          retailers, and must accompany or be available for the shipment.
+        </p>
+        <p>
+          We issue a GCC per SKU per production lot, we keep the underlying test records, and we
+          furnish the certificate with the shipment rather than on request. A dealer who is audited
+          holds the document already.
+        </p>
+
+        <h3>Required elements</h3>
+        <div class="table-scroll" role="region" tabindex="0" aria-label="Table 3 — General Certificate of Conformity required elements (scrollable)">
+          <table class="data">
+            <caption class="sr-only">Table 3 — General Certificate of Conformity required elements</caption>
+            <thead>
+              <tr>
+                <th scope="col" style="width:3.2rem">#</th>
+                <th scope="col" class="w-mid">Element</th>
+                <th scope="col" class="w-max">What we put on it</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="n">1</td><th scope="row">Product identification</th><td>SKU, product name, brand and the production lot the certificate covers.</td></tr>
+              <tr><td class="n">2</td><th scope="row">Each rule certified to</th><td>16 CFR Part 1272, cited by part and section. Not a general statement of compliance.</td></tr>
+              <tr><td class="n">3</td><th scope="row">Certifying importer</th><td>Fieldstock Supply Co., with full legal name, mailing address and telephone number.</td></tr>
+              <tr><td class="n">4</td><th scope="row">Records contact</th><td>The named individual who maintains the test records, with direct contact details — a person, not a role inbox.</td></tr>
+              <tr><td class="n">5</td><th scope="row">Date and place of manufacture</th><td>Month, year and manufacturing location for the lot.</td></tr>
+              <tr><td class="n">6</td><th scope="row">Date and place of testing</th><td>Month, year and the location where the marking was verified against the specified color.</td></tr>
+              <tr><td class="n">7</td><th scope="row">Third-party laboratory</th><td>Identified where a third-party lab was used. Not required for non-children's products, disclosed when it applies.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="caption">Table 3 — GCC content, per 16 CFR Part 1110.</p>
+      </section>
+
+      <!-- ============ 06 AGE ============ -->
+      <section class="doc-section reveal" id="age" aria-labelledby="h-age">
+        <div class="sec-head"><span class="sec-num">06</span><h2 id="h-age">Age of sale — 18+, trade only</h2></div>
+        <p>
+          Fieldstock sells to businesses. Accounts are opened at company level against a resale
+          certificate, and we do not accept consumer orders at any price. Nothing on this site is
+          offered for sale to a person under 18, and the footer statement to that effect is a term
+          of sale, not decoration.
+        </p>
+        <dl class="kv">
+          <div><dt>Minimum age</dt><dd>18<small>Point-of-sale age verification is the retailer's obligation in the retailer's jurisdiction. Several states set it by statute; some municipalities set it higher.</small></dd></div>
+          <div><dt>Account level</dt><dd>Company<small>Company, then locations, then named buyers. A buyer leaving a dealer does not take the account with them.</small></dd></div>
+          <div><dt>Required on file</dt><dd>Resale cert<small>Legally load-bearing, not a formality. No certificate, no account, no pricing.</small></dd></div>
+        </dl>
+      </section>
+
+      <!-- ============ 07 SKU COVERAGE ============ -->
+      <section class="doc-section reveal" id="skus" aria-labelledby="h-skus">
+        <div class="sec-head"><span class="sec-num">07</span><h2 id="h-skus">What this covers in the catalog</h2></div>
+        <p>
+          Marking tiers apply to complete imitation-firearm units. Parts, internals, magazines and
+          most accessories are not imitation firearms and carry no marking obligation, which is why
+          the counts below do not match the catalog total. These figures are counted from the live
+          catalog at page load, not typed in.
+        </p>
+
+        <dl class="kv" id="skuStats" aria-live="polite">
+          <div><dt>Catalog SKUs</dt><dd>—<small>Loading catalog…</small></dd></div>
+          <div><dt>Marking tier applies</dt><dd>—<small>Loading catalog…</small></dd></div>
+          <div><dt>Marking exempt</dt><dd>—<small>Loading catalog…</small></dd></div>
+        </dl>
+        <p class="caption method">
+          <strong>How this is counted.</strong> Marking applies to records in the Rifles, Shotguns,
+          Pistols and HPA categories, less the component records the supplier feed files under a gun
+          category — grips, magazines, drums, gas reservoirs and tanks, trigger groups, body frames,
+          charging handles, standalone HPA engines and printed matter. The supplier's own category
+          field is not a marking determination and we do not treat it as one: the binding call is
+          made per SKU against the physical unit at pack, and where the feed and the unit disagree,
+          the unit governs.
+        </p>
+
+        <h3>Sample of marked SKUs</h3>
+        <div class="table-scroll" role="region" tabindex="0" aria-label="Table 4 — sample of marked SKUs (scrollable)">
+          <table class="data">
+            <caption class="sr-only">Table 4 — sample of catalog SKUs to which a marking tier applies</caption>
+            <thead>
+              <tr>
+                <th scope="col"><span class="sr-only">Photo</span></th>
+                <th scope="col" class="w-min">SKU</th>
+                <th scope="col" class="w-max">Product</th>
+                <th scope="col">Category</th>
+                <th scope="col" class="w-min">Availability</th>
+              </tr>
+            </thead>
+            <tbody id="skuRows" aria-live="polite">
+              <tr><td colspan="5" style="color:var(--text-mute)">Loading catalog…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="caption method">
+          Table 4 — every unit listed ships marked to the destination tier. Sampled only from SKUs
+          the supplier feed codes unambiguously: several Raven families reuse one supplier code
+          across a whole product line, and we will not print a code next to a unit it does not
+          identify. <a href="catalog.html">See the full catalog</a>.
+        </p>
+      </section>
+
+      <!-- ============ 08 COUNSEL ============ -->
+      <section class="doc-section reveal" id="counsel" aria-labelledby="h-counsel">
+        <div class="sec-head"><span class="sec-num">08</span><h2 id="h-counsel">Review status and counsel disclaimer</h2></div>
+
+        <div class="signoff">
+          <div class="signoff-block">
+            <h3>Review</h3>
+            <p>
+              <span class="mono" style="color:var(--text);font-size:1.02rem">Last reviewed 2026-08-13</span><br><br>
+              Reviewed on a quarterly cycle and out of cycle whenever a cited authority is amended or
+              removed. The 2026-02-19 removal of 15 CFR Part 272 triggered an out-of-cycle review; the
+              correction in section 04 is the result.
+            </p>
+          </div>
+          <div class="signoff-block">
+            <h3>Scope</h3>
+            <p>
+              Federal marking rule, four state and municipal tiers, four refused jurisdictions,
+              certificate of conformity content and age of sale. Out of scope: customs
+              classification and duty, state sales-tax nexus, carrier hazmat rules for compressed
+              gas, and any jurisdiction outside the United States.
+            </p>
+          </div>
+        </div>
+
+        <div class="stop" style="margin-top:1.6rem">
+          <div class="stop-head">Not legal advice</div>
+          <p>
+            This page is a <strong>scoping summary compiled from primary sources</strong>. It is not
+            legal advice, it is not an opinion of counsel, and it does not create an
+            attorney-client relationship with anyone. Statutes are amended, municipal codes change
+            without notice, and a summary is not a substitute for the text of the rule.
+            <strong>Confirm every line of it with customs and product-safety counsel before capital
+            is committed</strong> — before an order is placed, before inventory is bought, and
+            before any of it is relied on in a supplier agreement. Where this page and the statute
+            disagree, the statute is correct and this page is wrong.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<div id="chrome-footer"></div>
+<script src="assets/js/store.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* If store.js failed to load, every .reveal section stays at opacity 0 and the
+     document is blank. Un-hide and bail rather than throwing on the first FS call. */
+  if (typeof FS === 'undefined') {
+    Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (el) {
+      el.classList.add('in');
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+    return;
+  }
+
+  /* ---- print ---- */
+  var printBtn = document.getElementById('printBtn');
+  if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
+
+  /* ---- anchor nav active state ---- */
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var sections = links
+    .map(function (a) { return document.querySelector(a.getAttribute('href')); })
+    .filter(Boolean);
+
+  function setActive(id) {
+    links.forEach(function (a) {
+      if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+  }
+
+  if ('IntersectionObserver' in window && sections.length) {
+    var seen = {};
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { seen[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
+      var best = null, bestRatio = 0;
+      sections.forEach(function (s) {
+        var r = seen[s.id] || 0;
+        if (r > bestRatio) { bestRatio = r; best = s.id; }
+      });
+      if (best) setActive(best);
+    }, { rootMargin: '-140px 0px -55% 0px', threshold: [0, 0.15, 0.4, 0.8, 1] });
+    sections.forEach(function (s) { spy.observe(s); });
+  }
+  setActive('matrix');
+
+  /* ---- live catalog figures ---- */
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  /* A marking obligation attaches to a complete imitation-firearm unit, not to a
+     supplier category label. The feed files plenty of components under a gun
+     category — pistol grips under "Pistols", drum magazines and a printed manual
+     under "Rifles", gas tanks and fore-ends under "Shotguns", standalone HPA
+     engines under "HPA Systems" — so the category alone overstates the count.
+     store.js's p.complianceTier is category-only and also misses the
+     "Magazines & Shells" category entirely; it is not used here. The rule below
+     is the one printed in the caption, so a reader can audit the number. */
+  var GUN_CATEGORIES = { 'Rifles': 1, 'Shotguns': 1, 'Pistols': 1, 'HPA Systems': 1 };
+  var NOT_A_UNIT = /reservoir|magazin|shell|adapter|mount|rail|sling|battery|pouch|spare|hop[- ]?up|grip|trigger|assembly|barrel|gearbox|motor|\bkit\b|manual|poster|sticker|charging handle|dust cover|cylinder|\bframe\b|fore-?end|buffer tube|gas tank|\bengine\b|regulator|nozzle|drum/i;
+  var JUNK_SKU = /poster|sticker|sample|test/i;
+
+  function isMarkedUnit(p) {
+    return !!GUN_CATEGORIES[p.category] && !NOT_A_UNIT.test(p.name) && !JUNK_SKU.test(p.sku);
+  }
+
+  FS.products().then(function (all) {
+    var marked = all.filter(isMarkedUnit);
+    var exempt = all.length - marked.length;
+
+    var stats = document.getElementById('skuStats');
+    if (stats) {
+      stats.innerHTML =
+        '<div><dt>Catalog SKUs</dt><dd>' + all.length +
+          '<small>Raven Evolution and Matador Tactical, live count.</small></dd></div>' +
+        '<div><dt>Marking tier applies</dt><dd>' + marked.length +
+          '<small>Complete imitation-firearm units. Each resolves to Tier 1, 2 or 3 at the ship-to address, or is refused under Tier 4.</small></dd></div>' +
+        '<div><dt>Marking exempt</dt><dd>' + exempt +
+          '<small>Parts, internals, magazines, HPA engines and accessories that are not themselves imitation firearms.</small></dd></div>';
+    }
+
+    /* The scraped feed reuses one supplier code across whole product families
+       (RAV-NEO-AK105-L covers every NEO AK and LMG). Printing a code next to a
+       unit it does not identify would be a false datum on a compliance document,
+       so the sample is restricted to codes that appear exactly once in the feed. */
+    var skuFreq = {};
+    all.forEach(function (p) { skuFreq[p.sku] = (skuFreq[p.sku] || 0) + 1; });
+
+    var guns = marked.filter(function (p) {
+      if (!p.img || !p.img.thumb) return false;
+      if (!(p.msrp_cad > 0)) return false;      // a $0 MSRP is a scrape failure, not a price
+      return skuFreq[p.sku] === 1;
+    });
+
+    function spread(list, n) {
+      var out = [], step = Math.max(1, Math.floor(list.length / n));
+      for (var i = 0; i < list.length && out.length < n; i += step) out.push(list[i]);
+      return out;
+    }
+    var byBrand = function (b) { return guns.filter(function (p) { return p.brand === b; }); };
+    var raven = spread(byBrand('Raven Evolution'), 2);
+    var picks = raven.concat(spread(byBrand('Matador Tactical'), 6 - raven.length));
+    if (picks.length < 6) picks = spread(guns, 6);
+
+    var body = document.getElementById('skuRows');
+    if (!body) return;
+    if (!picks.length) {
+      body.innerHTML = '<tr><td colspan="5" style="color:var(--text-mute)">Catalog unavailable.</td></tr>';
+      return;
+    }
+    /* alt="" — the product name is in the adjacent cell of the same row, so an
+       alt duplicating it reads the name twice to a screen reader. */
+    body.innerHTML = picks.map(function (p) {
+      return '<tr>' +
+        '<td class="thumb-cell"><img class="sku-thumb" src="' + esc(p.img.thumb) + '" alt="" width="54" height="40" loading="lazy" decoding="async"></td>' +
+        '<th scope="row" class="sku-cell">' + esc(p.sku) + '</th>' +
+        '<td>' + esc(p.name) + '</td>' +
+        '<td>' + esc(p.category) + '</td>' +
+        '<td>' + FS.stockPill(p) + '</td>' +
+      '</tr>';
+    }).join('');
+  }).catch(function () {
+    var body = document.getElementById('skuRows');
+    if (body) body.innerHTML = '<tr><td colspan="5" style="color:var(--text-mute)">Catalog unavailable offline. Marking tiers above are unaffected.</td></tr>';
+    var stats = document.getElementById('skuStats');
+    if (stats) stats.innerHTML =
+      '<div><dt>Catalog SKUs</dt><dd>—<small>Catalog unavailable.</small></dd></div>' +
+      '<div><dt>Marking tier applies</dt><dd>—<small>Catalog unavailable.</small></dd></div>' +
+      '<div><dt>Marking exempt</dt><dd>—<small>Catalog unavailable.</small></dd></div>';
+  });
+
+  FS.mountChrome('compliance');
+  FS.revealOnScroll();
+})();
+</script>
+</body></html>

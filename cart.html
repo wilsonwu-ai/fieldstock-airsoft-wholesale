@@ -1,0 +1,1184 @@
+<!doctype html><html lang="en" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Draft order · Fieldstock Supply Co.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+/* ---------- page layout only. No token is redefined here. ---------- */
+/* a class that sets display beats the UA rule for [hidden], and this page hides
+   whole states that way. Nail it down. */
+[hidden] { display: none !important; }
+.o-main { padding-bottom: clamp(56px, 8vw, 104px); }
+
+.o-head { padding-block: clamp(28px, 4vw, 48px) 1.4rem; }
+.o-head h1 { font-size: clamp(2.1rem, 4.6vw, 3.4rem); }
+.o-facts {
+  display: flex; flex-wrap: wrap; gap: .5rem 1.6rem; margin-top: 1rem;
+  font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em;
+  color: var(--text-2); text-transform: uppercase;
+}
+.o-facts b { color: var(--text); font-weight: 500; }
+
+.o-grid { display: grid; grid-template-columns: minmax(0,1fr) 358px; gap: 28px; align-items: start; }
+@media (max-width: 1080px) { .o-grid { grid-template-columns: minmax(0,1fr); } }
+/* Sticky only above the stack point, where the header is its single 66px row.
+   Capped and scrollable so a tall summary (five blockers plus the credit block)
+   can never park its own bottom below the fold with no way to reach it. */
+@media (min-width: 1081px) {
+  .o-side { position: sticky; top: 82px; max-height: calc(100vh - 98px); overflow-y: auto; overscroll-behavior: contain; }
+}
+
+.panel { border: 1px solid var(--hairline); background: var(--surface-1); }
+.panel-hd {
+  display: flex; align-items: baseline; justify-content: space-between; gap: .8rem;
+  padding: .85rem 1.1rem; border-bottom: 1px solid var(--hairline);
+}
+.panel-hd h2, .panel-hd h3 { font-size: .92rem; letter-spacing: .07em; }
+.panel-bd { padding: 1.1rem; }
+/* --text-mute measures 3.3:1 on the light surface, which fails AA for text this
+   small. Every label on this page is load-bearing (case pack, MAP, tier name,
+   freight basis), so they all run on --text-2 (7.9:1). No token is redefined. */
+.micro {
+  font-family: var(--font-mono); font-size: .64rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--text-2);
+}
+
+/* ---------- the two gauges: deliberately different objects ---------- */
+.o-gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); margin-bottom: 22px; }
+@media (max-width: 720px) { .o-gauges { grid-template-columns: 1fr; } }
+.gauge { background: var(--surface-1); padding: 1rem 1.1rem 1.15rem; }
+.gauge-top { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; margin-bottom: .15rem; }
+.gauge-name { font-family: var(--font-display); font-variation-settings: 'wdth' 80,'wght' 700; text-transform: uppercase; font-size: .92rem; letter-spacing: .04em; }
+.gauge-kind { border: 1px solid var(--hairline-lit); padding: .1rem .42rem; border-radius: var(--r); }
+.gauge-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 1.06rem; margin: .35rem 0 .5rem; }
+.gauge-num span { color: var(--text-2); font-size: .78rem; }
+.gauge-track { height: 8px; background: color-mix(in srgb, var(--text) 9%, transparent); border-radius: 2px; overflow: hidden; }
+.gauge-fill { height: 100%; width: 0; transition: width var(--t); }
+/* A — the gate. Solid fill, on the one accent, because it is the thing you must act on. */
+.gauge-min .gauge-fill { background: var(--orange); }
+.gauge-min.met .gauge-fill { background: var(--stock); }
+/* B — the perk. Segmented fill on a neutral, because nothing is wrong when it is
+   unearned. --coyote is reserved for backorder state (app.css) and is not spent
+   on decoration here; solid-vs-segmented plus the Required/Optional chips carry
+   the distinction without a second saturated hue. */
+.gauge-frt .gauge-fill {
+  background: repeating-linear-gradient(90deg, var(--text-2) 0 9px, transparent 9px 13px);
+}
+.gauge-frt.met .gauge-fill { background: repeating-linear-gradient(90deg, var(--stock) 0 9px, transparent 9px 13px); }
+.gauge-frt.na .gauge-fill { background: repeating-linear-gradient(90deg, var(--hairline-lit) 0 9px, transparent 9px 13px); }
+.gauge-say { font-size: .8rem; color: var(--text-2); margin: .55rem 0 0; }
+.gauge-say b { color: var(--text); font-weight: 600; }
+
+/* ---------- line table ----------
+   The lines sit in a column whose width depends on the page grid, not on the
+   viewport, so the stacked/tabular switch is a container query. Browsers without
+   container query support keep the stacked layout, which is fully usable. */
+.lines-panel { container-type: inline-size; container-name: lines; }
+.lines-head { display: none; }
+.lines-head span { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .13em; text-transform: uppercase; color: var(--text-2); }
+
+.line {
+  display: grid;
+  gap: .55rem .9rem;
+  grid-template-columns: 64px minmax(0,1fr) 32px;
+  grid-template-areas:
+    "thumb id rm"
+    "unit unit unit"
+    "qty qty qty"
+    "ext ext ext"
+    "nudge nudge nudge"
+    "note note note";
+  padding: 1rem 1.1rem 1.15rem;
+  border-bottom: 1px solid var(--hairline);
+  align-items: start;
+}
+.line:last-child { border-bottom: 0; }
+.ln-unit, .ln-ext, .ln-qty {
+  display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+  border-top: 1px dashed var(--hairline); padding-top: .5rem;
+}
+.ln-lab {
+  font-family: var(--font-mono); font-size: .62rem; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--text-2);
+}
+
+@container lines (min-width: 720px) {
+  .lines-head {
+    display: grid; gap: .9rem;
+    grid-template-columns: 86px minmax(0,1fr) 104px 130px 112px 32px;
+    grid-template-areas: "thumb id unit qty ext rm";
+    padding: .55rem 1.1rem; border-bottom: 1px solid var(--hairline);
+  }
+  .line {
+    grid-template-columns: 86px minmax(0,1fr) 104px 130px 112px 32px;
+    grid-template-areas:
+      "thumb id unit qty ext rm"
+      "thumb nudge nudge nudge nudge nudge"
+      "thumb note note note note note";
+  }
+  .ln-unit, .ln-ext, .ln-qty { display: block; border-top: 0; padding-top: 0; }
+  /* the column header carries the meaning here, but the per-cell label stays in
+     the accessibility tree so a screen reader never hears a bare number */
+  .ln-lab {
+    position: absolute; width: 1px; height: 1px; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+}
+
+/* These are background-removed cutouts, and most of the catalog is matte black
+   polymer and anodised aluminium. On an ink-dark tile they read as silhouettes —
+   the exact black-on-black failure the design contract calls the defining
+   constraint. On a light page there is no reason to reintroduce it, so the tile
+   runs on the surface token, matching the portal's reorder rail. */
+.ln-thumb {
+  grid-area: thumb; width: 100%; aspect-ratio: 4/3;
+  background: color-mix(in srgb, var(--text) 4%, var(--surface-2));
+  border: 1px solid var(--hairline); border-radius: var(--r);
+  display: grid; place-items: center; overflow: hidden; padding: 6px;
+}
+.ln-thumb img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+.ln-thumb.no-shot { background: var(--surface-2); border-style: dashed; text-align: center; padding: 4px; }
+.ln-thumb.no-shot .micro { font-size: .54rem; letter-spacing: .08em; line-height: 1.25; }
+.ln-id { grid-area: id; min-width: 0; }
+.ln-name { font-family: var(--font-display); font-variation-settings: 'wdth' 82,'wght' 600; text-transform: uppercase; font-size: .94rem; line-height: 1.18; overflow-wrap: anywhere; }
+.ln-name a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hairline-lit); }
+.ln-name a:hover { color: var(--orange-press); text-decoration-color: currentColor; }
+.ln-meta { display: flex; flex-wrap: wrap; gap: .3rem .9rem; margin-top: .4rem; font-family: var(--font-mono); font-size: .66rem; letter-spacing: .06em; color: var(--text-2); overflow-wrap: anywhere; }
+.ln-meta b { color: var(--text); font-weight: 500; }
+.ln-warn { margin: .45rem 0 0; font-size: .76rem; color: var(--coyote); }
+.ln-warn.bad { color: var(--danger); }
+.ln-unit { grid-area: unit; }
+.ln-qty  { grid-area: qty; }
+.ln-ext  { grid-area: ext; }
+.ln-money { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: .95rem; }
+.ln-sub { display: block; font-family: var(--font-mono); font-size: .62rem; letter-spacing: .06em; color: var(--text-2); margin-top: .18rem; }
+
+.stepper { display: inline-flex; border: 1px solid var(--hairline); border-radius: var(--r); overflow: hidden; background: var(--surface-2); }
+.stepper button {
+  width: 34px; height: 38px; background: transparent; border: 0; cursor: pointer;
+  color: var(--text-2); font-size: 1.05rem; line-height: 1;
+}
+/* --orange measures 2.9:1 on the light ground, so it is a fill colour here, not
+   an ink colour. Anywhere it would carry a glyph or a word, use --orange-press
+   (4.7:1). The token is untouched; only the choice of token changes. */
+.stepper button:hover:not(:disabled) { background: var(--orange-wash); color: var(--orange-press); }
+.stepper button:disabled { opacity: .35; cursor: not-allowed; }
+.stepper input {
+  width: 62px; height: 38px; text-align: center; background: transparent; border: 0;
+  border-inline: 1px solid var(--hairline);
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: .9rem;
+  -moz-appearance: textfield;
+}
+.stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+/* the stepper clips its own children, so the focus ring is drawn inside the box */
+.stepper :focus-visible { outline-offset: -3px; }
+
+.ln-rm { grid-area: rm; justify-self: end; }
+.icon-btn {
+  position: relative;
+  width: 30px; height: 30px; border: 1px solid var(--hairline); background: transparent;
+  border-radius: var(--r); cursor: pointer; color: var(--text-2); line-height: 1; font-size: .95rem;
+}
+/* a 30px box is under the 44px touch minimum; extend the hit area without
+   changing the drawn size or disturbing the grid */
+.icon-btn::after { content: ''; position: absolute; inset: -8px; }
+.icon-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+.ln-nudge {
+  grid-area: nudge; margin: .3rem 0 0;
+  display: flex; flex-wrap: wrap; align-items: center; gap: .6rem .8rem;
+  border-left: 2px solid var(--orange); background: var(--orange-wash);
+  padding: .55rem .75rem; font-size: .8rem; color: var(--text-2);
+}
+.ln-nudge b { color: var(--text); font-weight: 600; }
+.ln-nudge .why { flex-basis: 100%; font-family: var(--font-mono); font-size: .62rem; letter-spacing: .05em; color: var(--text-2); }
+.ln-note { grid-area: note; margin-top: .5rem; }
+.ln-note input { font-size: .84rem; padding: .5rem .7rem; }
+.ln-note label { display: block; margin-bottom: .25rem; }
+
+/* ---------- forms / details ---------- */
+.f-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0,1fr)); }
+@media (max-width: 620px) { .f-grid { grid-template-columns: minmax(0,1fr); } }
+.f-span { grid-column: 1 / -1; }
+.hint { font-size: .76rem; color: var(--text-2); margin: .3rem 0 0; }
+.radio-set { display: grid; gap: .5rem; }
+/* These are <label>s living inside a .field, so app.css's field-caption rule
+   (mono, uppercase, .13em tracking, --text-mute) was landing on the whole
+   descriptive sentence: "HOLD THE WHOLE ORDER UNTIL EVERY LINE IS ON THE
+   SHELF..." set in tracked-out caps at 12px. Caption styling is for captions. */
+.radio-set label.radio-row {
+  display: flex; gap: .7rem; align-items: flex-start; border: 1px solid var(--hairline);
+  border-radius: var(--r); padding: .7rem .8rem; cursor: pointer; background: var(--surface-2);
+  font-family: var(--font-body); font-size: 1rem; letter-spacing: normal;
+  text-transform: none; color: var(--text);
+}
+.radio-row:hover { border-color: var(--hairline-lit); }
+.radio-row input { margin-top: .22rem; accent-color: var(--orange); flex: none; }
+.radio-row strong { display: block; font-size: .88rem; }
+.radio-row span { font-size: .77rem; color: var(--text-2); }
+.zip-chips { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-top: .5rem; }
+.chip {
+  font-family: var(--font-mono); font-size: .64rem; letter-spacing: .08em; text-transform: uppercase;
+  border: 1px dashed var(--hairline-lit); background: transparent; color: var(--text-2);
+  padding: .5rem .6rem; border-radius: var(--r); cursor: pointer;
+}
+.chip:hover { border-color: var(--danger); color: var(--danger); }
+
+.flag { border-left: 2px solid var(--danger); background: color-mix(in srgb, var(--danger) 7%, transparent); padding: .85rem 1rem; font-size: .84rem; }
+.flag h4 { font-size: .8rem; letter-spacing: .09em; color: var(--danger); margin-bottom: .35rem; }
+.flag p { margin: 0 0 .5rem; color: var(--text-2); }
+.flag a { color: var(--danger); text-decoration: underline; text-underline-offset: 2px; }
+.flag.ok { border-left-color: var(--stock); background: color-mix(in srgb, var(--stock) 8%, transparent); }
+.flag.ok h4 { color: var(--stock); }
+
+/* ---------- summary ---------- */
+.sum { margin: 0; }
+.sum-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: .42rem 0; font-size: .87rem; }
+.sum-row dt { color: var(--text-2); }
+.sum-row dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.sum-row.tot { border-top: 1px solid var(--hairline); margin-top: .5rem; padding-top: .7rem; font-size: 1.02rem; }
+.sum-row.tot dt { color: var(--text); font-weight: 600; }
+.sum-note { font-size: .74rem; color: var(--text-2); margin: .55rem 0 0; }
+.credit { border-top: 1px solid var(--hairline); margin: .9rem 0 0; padding-top: .8rem; }
+.credit .sum-row { font-size: .82rem; padding: .3rem 0; }
+.credit .rem dd { color: var(--stock); }
+.credit .rem.over dd { color: var(--danger); }
+.blockers { margin: .9rem 0 0; padding: 0; list-style: none; display: grid; gap: .4rem; }
+.blockers li { display: flex; gap: .5rem; font-size: .8rem; color: var(--danger); }
+.blockers li::before { content: '\2715'; flex: none; }
+.blockers:empty { display: none; }
+.btn-block { width: 100%; padding-block: .9rem; }
+/* aria-disabled, not disabled: the button stays focusable and still does
+   something (it moves you to the reasons), so it has to keep real contrast. */
+.btn[aria-disabled="true"] { background: color-mix(in srgb, var(--text) 12%, transparent); border-color: var(--hairline-lit); color: var(--text-2); }
+.btn[aria-disabled="true"]:hover { filter: none; }
+
+/* ---------- gate / empty ---------- */
+.o-slab { max-width: 640px; margin-inline: auto; text-align: center; padding-block: clamp(40px, 7vw, 84px); }
+.o-slab .btnrow { display: flex; gap: .7rem; justify-content: center; flex-wrap: wrap; margin-top: 1.6rem; }
+.held { margin: 2rem 0 0; text-align: left; border: 1px solid var(--hairline); }
+.held li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .3rem 1rem; padding: .7rem 1rem; border-bottom: 1px solid var(--hairline); font-size: .85rem; }
+.held li > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.held li .price-gate { flex: none; color: var(--orange-press); }
+.held li:last-child { border-bottom: 0; }
+.held { list-style: none; padding: 0; }
+
+/* ---------- dialog ---------- */
+dialog.o-dlg {
+  border: 1px solid var(--hairline); background: var(--surface-1); color: var(--text);
+  border-radius: var(--r); padding: 0; max-width: 520px; width: calc(100% - 2rem);
+}
+dialog.o-dlg::backdrop { background: color-mix(in srgb, var(--text) 62%, transparent); }
+.o-dlg .panel-bd p { font-size: .9rem; color: var(--text-2); }
+.recap { list-style: none; margin: 0 0 1.1rem; padding: 0; border-top: 1px solid var(--hairline); }
+.recap li { display: flex; justify-content: space-between; gap: 1rem; padding: .45rem 0; border-bottom: 1px solid var(--hairline); font-size: .83rem; }
+.recap b { font-family: var(--font-mono); font-weight: 500; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+</style>
+</head><body>
+<div id="chrome-header"></div>
+
+<main class="o-main">
+  <div class="wrap">
+
+    <div class="o-head">
+      <p class="eyebrow">Dealer portal</p>
+      <h1>Draft order</h1>
+      <div class="o-facts" id="oFacts"></div>
+    </div>
+
+    <!-- signed out -->
+    <section id="gate" hidden>
+      <div class="o-slab">
+        <h2>Sign in to continue</h2>
+        <p class="lede" style="margin-inline:auto">
+          Dealer pricing, freight thresholds and credit terms are account-specific.
+          Your draft is held on this device until you sign in — nothing is lost.
+        </p>
+        <div class="btnrow">
+          <a class="btn" href="login.html">Dealer sign in</a>
+          <a class="btn btn-ghost" href="apply.html">Apply for an account</a>
+          <a class="btn btn-ghost" href="catalog.html">Browse the catalog</a>
+        </div>
+        <ul class="held" id="gateLines"></ul>
+        <p class="hint" style="text-align:left" id="gateHint"></p>
+      </div>
+    </section>
+
+    <!-- signed in, nothing in the draft -->
+    <section id="empty" hidden>
+      <div class="o-slab">
+        <h2>This draft is empty</h2>
+        <p class="lede" style="margin-inline:auto">
+          Nothing has been added yet. Reorder minimum is $250.00 of merchandise;
+          freight is prepaid at $2,500.00.
+        </p>
+        <div class="btnrow">
+          <a class="btn" href="catalog.html">Browse the catalog</a>
+          <button class="btn btn-ghost" type="button" id="seedBtn">Demo: load a sample draft</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- signed in, has lines -->
+    <div id="order" class="o-grid" hidden>
+      <div class="o-col">
+
+        <section class="o-gauges reveal" aria-label="Order thresholds">
+          <div class="gauge gauge-min" id="gMin">
+            <div class="gauge-top">
+              <span class="gauge-name">Reorder minimum</span>
+              <span class="micro gauge-kind">Required</span>
+            </div>
+            <p class="gauge-num" id="gMinNum"></p>
+            <div class="gauge-track"><div class="gauge-fill" id="gMinFill"></div></div>
+            <p class="gauge-say" id="gMinSay"></p>
+          </div>
+          <div class="gauge gauge-frt" id="gFrt">
+            <div class="gauge-top">
+              <span class="gauge-name">Prepaid freight</span>
+              <span class="micro gauge-kind">Optional</span>
+            </div>
+            <p class="gauge-num" id="gFrtNum"></p>
+            <div class="gauge-track"><div class="gauge-fill" id="gFrtFill"></div></div>
+            <p class="gauge-say" id="gFrtSay"></p>
+          </div>
+        </section>
+
+        <section class="panel lines-panel reveal" aria-labelledby="linesH" style="margin-bottom:22px">
+          <div class="panel-hd">
+            <h2 id="linesH">Lines</h2>
+            <span class="micro" id="linesCount"></span>
+          </div>
+          <p class="hint" style="margin:0;padding:.7rem 1.1rem;border-bottom:1px solid var(--hairline)">
+            Thumbnails are the manufacturers&rsquo; own Canadian-market photographs of these exact SKUs,
+            background-removed and rescaled &mdash; nothing generated or substituted. The units shown carry
+            <b>no blaze-orange muzzle marking</b>; every gun SKU is marked to
+            <span class="mono">16 CFR 1272</span> before it leaves the warehouse.
+          </p>
+          <div class="lines-head" aria-hidden="true">
+            <span style="grid-area:thumb"></span>
+            <span style="grid-area:id">Item</span>
+            <span style="grid-area:unit">Unit net</span>
+            <span style="grid-area:qty">Quantity</span>
+            <span style="grid-area:ext">Extended</span>
+            <span style="grid-area:rm"></span>
+          </div>
+          <div id="lines"></div>
+        </section>
+
+        <section class="panel reveal" aria-labelledby="detailsH">
+          <div class="panel-hd"><h2 id="detailsH">Order details</h2>
+            <span class="micro">Saved on this device</span></div>
+          <div class="panel-bd">
+            <div class="f-grid">
+              <div class="field">
+                <label for="po">Your PO number</label>
+                <input class="input mono" id="po" name="po" type="text" autocomplete="off" placeholder="e.g. 4471-B">
+                <p class="hint">Printed on the packing list and the invoice.</p>
+              </div>
+              <div class="field">
+                <label for="shipDate">Requested ship date</label>
+                <input class="input mono" id="shipDate" name="shipDate" type="date">
+                <p class="hint">Earliest we release is the next business day.</p>
+              </div>
+
+              <div class="field f-span">
+                <span class="micro" id="splitLbl" style="margin-bottom:.15rem">Shipping method</span>
+                <div class="radio-set" role="radiogroup" aria-labelledby="splitLbl">
+                  <label class="radio-row">
+                    <input type="radio" name="fulfil" value="complete" id="fulfilComplete" checked>
+                    <span><strong>Ship complete</strong>
+                    <span>Hold the whole order until every line is on the shelf. One outbound, one tracking number.</span></span>
+                  </label>
+                  <label class="radio-row">
+                    <input type="radio" name="fulfil" value="split" id="fulfilSplit">
+                    <span><strong>Split ship</strong>
+                    <span>Release what is in stock now, backorders follow. Adds a modeled second outbound leg of $24.00 when freight is not prepaid.</span></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="field f-span">
+                <label for="carrier">Carrier account (optional)</label>
+                <input class="input mono" id="carrier" type="text" autocomplete="off" placeholder="UPS or FedEx account number">
+                <p class="hint">Enter an account number and freight bills collect to you. Our freight estimate drops to $0.00 and the prepaid threshold stops applying.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel reveal" aria-labelledby="shiptoH" style="margin-top:22px">
+          <div class="panel-hd"><h2 id="shiptoH">Ship to</h2>
+            <span class="micro">Checked by ZIP</span></div>
+          <div class="panel-bd">
+            <div class="f-grid">
+              <div class="field f-span">
+                <label for="shipCo">Company / consignee</label>
+                <input class="input" id="shipCo" type="text" autocomplete="organization">
+              </div>
+              <div class="field f-span">
+                <label for="shipStreet">Street</label>
+                <input class="input" id="shipStreet" type="text" autocomplete="address-line1">
+              </div>
+              <div class="field">
+                <label for="shipCity">City</label>
+                <input class="input" id="shipCity" type="text" autocomplete="address-level2">
+              </div>
+              <div class="field">
+                <label for="shipState">State</label>
+                <select class="input" id="shipState" autocomplete="address-level1"></select>
+              </div>
+              <div class="field f-span">
+                <label for="shipZip">Destination ZIP</label>
+                <input class="input mono" id="shipZip" type="text" inputmode="numeric" pattern="[0-9]{5}"
+                       maxlength="5" autocomplete="postal-code" aria-describedby="zipHelp">
+                <p class="hint" id="zipHelp">Five digits. The restriction check runs on the ZIP, because a state-level rule alone misses a Manhattan or a Chicago address.</p>
+                <div class="zip-chips">
+                  <span class="micro" style="align-self:center">Demo — try a blocked ZIP:</span>
+                  <button type="button" class="chip" data-zip="07302" data-state="NJ">07302 Jersey City</button>
+                  <button type="button" class="chip" data-zip="10018" data-state="NY">10018 Manhattan</button>
+                  <button type="button" class="chip" data-zip="60614" data-state="IL">60614 Chicago</button>
+                  <button type="button" class="chip" data-zip="19107" data-state="PA">19107 Philadelphia</button>
+                </div>
+              </div>
+              <div class="f-span" id="zipVerdict" aria-live="polite"></div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <aside class="o-col o-side">
+        <section class="panel" aria-labelledby="sumH">
+          <div class="panel-hd"><h2 id="sumH">Summary</h2><span class="micro" id="sumUnits"></span></div>
+          <div class="panel-bd">
+            <!-- One live region, not three. A qty change used to fire the summary,
+                 the ZIP verdict and the blocker list simultaneously; a screen
+                 reader read the whole panel back on every keystroke. The concise
+                 status line below is the only thing that speaks on a money change. -->
+            <div id="sumLive">
+              <dl class="sum" id="sumRows"></dl>
+              <p class="sum-note" id="freightNote"></p>
+              <dl class="credit" id="creditBox"></dl>
+            </div>
+            <p class="sr-only" id="sumStatus" role="status"></p>
+            <ul class="blockers" id="blockers" aria-label="Reasons this draft cannot be submitted"></ul>
+            <div style="margin-top:1.1rem">
+              <button class="btn btn-block" type="button" id="submitBtn" aria-describedby="blockers">Submit draft order</button>
+            </div>
+            <p class="sum-note">Demonstration site. Submitting opens a confirmation and places no order.</p>
+          </div>
+        </section>
+        <p class="hint" style="margin-top:.9rem">
+          Compliance summaries are scoping notes, not legal advice.
+          <a href="compliance.html" style="text-decoration:underline;text-underline-offset:2px">Read the marking tiers</a>.
+        </p>
+      </aside>
+    </div>
+
+  </div>
+</main>
+
+<dialog class="o-dlg" id="confirmDlg" aria-labelledby="dlgH">
+  <div class="panel-hd"><h2 id="dlgH">No order was placed</h2></div>
+  <div class="panel-bd">
+    <p><strong>This is a demonstration site.</strong> Nothing was transmitted, no order
+      number was issued, no stock was allocated and no credit was drawn. Your draft is
+      still here, unchanged, on this device.</p>
+    <ul class="recap" id="dlgRecap"></ul>
+    <button class="btn btn-block" type="button" id="dlgClose" autofocus>Back to the draft</button>
+  </div>
+</dialog>
+
+<div id="chrome-footer"></div>
+<script src="assets/js/store.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var MIN_ORDER   = 250;      // reorder minimum, merchandise only
+  var FREE_FREIGHT= 2500;     // prepaid freight threshold
+  var FRT_RATE    = 0.065;    // modeled freight, share of merchandise
+  var FRT_MIN     = 38;
+  var SPLIT_LEG   = 24;       // modeled second outbound
+  var LS_META     = 'fs.draftmeta';
+
+  var $  = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var usd = FS.usd;
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  /* Write only when the markup actually changed. Live regions re-announce on any
+     write, and the ship-to fields re-price on every keystroke, so an unguarded
+     assignment made the ZIP field read the whole verdict back letter by letter. */
+  function setHTML(el, html) {
+    if (!el || el.innerHTML === html) return false;
+    el.innerHTML = html;
+    return true;
+  }
+  function setText(el, txt) {
+    if (!el || el.textContent === txt) return false;
+    el.textContent = txt;
+    return true;
+  }
+
+  /* "Earliest we release is the next business day" — so the floor on the date
+     input has to skip the weekend, not just add 24 hours. */
+  function nextBusinessDay(from) {
+    var d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || d.getDay() === 6);
+    return d;
+  }
+  function ymd(d) {
+    return d.getFullYear() + '-' +
+      ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+
+  var STATES = ('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO ' +
+                'MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY').split(' ');
+
+  /* ---------- restriction matrix. ZIP first, state as a backstop. ----------
+     The municipal bands are tested BEFORE the NJ state backstop. With the old
+     order, a 10018 ZIP sitting next to a stale "NJ" in the state select was
+     reported as a New Jersey block — right verdict, wrong reason, and the wrong
+     paragraph of law shown to the dealer. The specific rule wins. */
+  function restrictionFor(zip, state) {
+    var z = String(zip || '').trim();
+    var ok5 = /^\d{5}$/.test(z);
+    var n = ok5 ? parseInt(z, 10) : -1;
+    if (ok5 && n >= 10001 && n <= 10499) {
+      return { where: 'New York City', scope: 'municipal',
+        why: 'New York City blocks delivery of imitation firearms municipally, on top of the state marking regime, which is the strictest in the country and actively enforced against online sellers shipping into New York. ZIPs 100xx&ndash;104xx are inside the city.' };
+    }
+    if (ok5 && n >= 60600 && n <= 60699) {
+      return { where: 'Chicago', scope: 'municipal',
+        why: 'Chicago Municipal Code 4-144-190 is the clearest outright municipal ban in the matrix. Illinois outside the 606xx band is open.' };
+    }
+    if (ok5 && n >= 19100 && n <= 19199) {
+      return { where: 'Philadelphia', scope: 'municipal',
+        why: 'Philadelphia blocks these SKUs municipally. Pennsylvania outside the 191xx band is open.' };
+    }
+    if (state === 'NJ' || (ok5 && n >= 7000 && n <= 8999)) {
+      return { where: 'New Jersey', scope: 'statewide',
+        why: 'New Jersey regulates airsoft guns as firearms statewide. Marked gun SKUs cannot be shipped to any New Jersey address, and the state rule reaches every ZIP in the 070xx&ndash;089xx band.' };
+    }
+    return null;
+  }
+
+  /* ---------- meta (PO, dates, notes) persisted per device ---------- */
+  var meta;
+  try { meta = JSON.parse(localStorage.getItem(LS_META)) || {}; } catch (e) { meta = {}; }
+  if (!meta.notes) meta.notes = {};
+  function saveMeta() { try { localStorage.setItem(LS_META, JSON.stringify(meta)); } catch (e) {} }
+
+  var BYID = {}, user = FS.user();
+  /* Local date, not toISOString(). toISOString converts to UTC first, so for any
+     dealer west of Greenwich an evening visit put the "earliest ship" floor a
+     day later than it should be. */
+  var earliestShip = ymd(nextBusinessDay(new Date()));
+
+  function lines() {
+    return FS.cart().map(function (r) {
+      var p = BYID[r.id];
+      if (!p) return null;
+      return { p: p, qty: r.qty };
+    }).filter(Boolean);
+  }
+
+  function quoteOnly(p) { return !(p.msrp_usd > 0); }
+
+  /* store.js flags complianceTier 'n/a' for 'Parts & Accessories' and
+     'Magazines', but the catalog also carries a 'Magazines & Shells' category
+     that fell through and was scored as a gun. A shell pack is not an imitation
+     firearm, and calling it one blocked a legitimate Chicago order. The category
+     list is the fix; this guard keeps the cart honest even if store.js drifts. */
+  var NON_GUN_CATEGORIES = { 'Parts & Accessories': 1, 'Magazines': 1, 'Magazines & Shells': 1 };
+  function isGunLine(p) {
+    return p.complianceTier !== 'n/a' && !NON_GUN_CATEGORIES[p.category];
+  }
+
+  function priceLine(p, qty) {
+    if (quoteOnly(p)) return { unit: null, ext: 0, tier: null };
+    var unit = FS.netPrice(p, qty);
+    return { unit: unit, ext: unit == null ? 0 : Math.round(unit * qty * 100) / 100, tier: FS.tierFor(p, qty) };
+  }
+
+  /* Case packs do not break. A typed quantity rounds UP to the next full case,
+     never down — rounding down would quietly hand a dealer less than they asked
+     for and can drop them back below a price break. */
+  function snap(p, q) {
+    var inc = p.increment || 1, min = p.minQty || inc;
+    q = Math.ceil(q / inc) * inc;
+    if (q < min) q = min;
+    return q;
+  }
+
+  /* Stepping off a quantity that is NOT already a valid multiple — quick-order
+     and the SKU paste box can both produce one — used to add or subtract a full
+     case and THEN round up, so 7 in a case of 6 jumped to 18 on a single "+"
+     and the dealer never saw 12. Land on the adjacent valid multiple first. */
+  function stepQty(p, cur, dir) {
+    var inc = p.increment || 1, min = p.minQty || inc, q;
+    if (cur % inc !== 0) q = (dir > 0 ? Math.ceil(cur / inc) : Math.floor(cur / inc)) * inc;
+    else q = cur + dir * inc;
+    return Math.max(min, q);
+  }
+
+  /* ---------- totals ---------- */
+  function totals() {
+    var ls = lines(), sub = 0, units = 0, quoted = 0, gunLines = 0;
+    ls.forEach(function (l) {
+      units += l.qty;
+      if (quoteOnly(l.p)) { quoted++; } else { sub += priceLine(l.p, l.qty).ext; }
+      if (isGunLine(l.p)) gunLines++;
+    });
+    sub = Math.round(sub * 100) / 100;
+
+    var carrier = (meta.carrier || '').trim();
+    var split = meta.fulfil === 'split';
+    var freight, freightWhy;
+    if (carrier) {
+      freight = 0;
+      freightWhy = 'Freight bills collect to carrier account ' + carrier + '. The prepaid threshold does not apply.';
+    } else if (sub === 0) {
+      /* Freight is modeled as a share of merchandise. With every line on quote
+         the merchandise figure is zero, and the old code still billed the $38
+         floor — a freight charge on an order with no priced goods in it, which
+         made the total larger than the subtotal for no stated reason. */
+      freight = 0;
+      freightWhy = 'No line on this draft carries a published price, so there is nothing to model freight against. Freight is quoted with the lines.';
+    } else if (sub >= FREE_FREIGHT) {
+      freight = 0;
+      freightWhy = 'Prepaid: merchandise is at or above ' + usd(FREE_FREIGHT) + '.';
+    } else {
+      freight = Math.max(FRT_MIN, Math.round(sub * FRT_RATE * 100) / 100);
+      if (split) freight = Math.round((freight + SPLIT_LEG) * 100) / 100;
+      freightWhy = 'Modeled at ' + (FRT_RATE * 100).toFixed(1) + '% of merchandise, ' + usd(FRT_MIN) +
+                   ' minimum' + (split ? ', plus ' + usd(SPLIT_LEG) + ' for the second outbound leg' : '') +
+                   '. Actual freight is confirmed on the packing list.';
+    }
+    return {
+      ls: ls, sub: sub, units: units, quoted: quoted, gunLines: gunLines,
+      freight: freight, freightWhy: freightWhy,
+      total: Math.round((sub + freight) * 100) / 100
+    };
+  }
+
+  /* ---------- render: lines ---------- */
+  function renderLines(t) {
+    var host = $('#lines');
+    host.innerHTML = t.ls.map(function (l) {
+      var p = l.p, q = l.qty, inc = p.increment || 1, min = p.minQty || inc;
+      var pr = priceLine(p, q);
+      var qo = quoteOnly(p);
+
+      // price-break nudge, snapped to a valid case multiple
+      var nudge = '';
+      if (!qo) {
+        var nb = FS.nextBreak(p, q);
+        if (nb) {
+          var target = Math.ceil(nb.min_qty / inc) * inc;
+          var add = target - q;
+          var reach = Math.max(12, inc * 2);
+          if (add > 0 && add <= reach) {
+            var save = Math.round((pr.unit - nb.unit_usd) * target * 100) / 100;
+            if (save > 0) {
+              nudge =
+                '<p class="ln-nudge">' +
+                  // The saving is measured against buying the SAME target
+                  // quantity at today's unit price. Saying only "saves $335"
+                  // next to "add 8" reads as a discount for spending nothing,
+                  // so the basis quantity goes in the sentence, not just the
+                  // footnote under it.
+                  '<span>Add <b>' + add + ' more</b> of <b class="mono">' + esc(p.sku) + '</b> to reach the ' +
+                  nb.min_qty + '-unit price &mdash; saves <b>' + usd(save) + '</b> on ' + target + ' units.</span>' +
+                  '<button type="button" class="btn btn-sm" data-bump="' + esc(p.id) + '" data-to="' + target + '">Add ' + add + '</button>' +
+                  '<span class="why">' + esc(nb.name) + ' &middot; ' + usd(nb.unit_usd) + '/unit at ' + target +
+                  ', against ' + usd(pr.unit) + '/unit today &middot; ' + usd(nb.unit_usd * target) + ' outlay</span>' +
+                '</p>';
+            }
+          }
+        }
+      }
+
+      // honest stock consequence for the quantity asked
+      var warn = '';
+      if (p.stock === 'out') {
+        warn = '<p class="ln-warn bad">Sold out. Remove this line, or leave it on and we will come back with a factory date before anything ships.</p>';
+      } else if (p.stock === 'back') {
+        warn = '<p class="ln-warn">Backordered &mdash; due ' + esc(p.eta) + '. Ship complete holds the whole order until it lands.</p>';
+      } else if (p.stock === 'in' && q > p.onHand) {
+        warn = '<p class="ln-warn">' + p.onHand + ' on hand against ' + q + ' asked. The balance backorders.</p>';
+      }
+
+      var margin = (!qo && pr.unit != null && p.map_usd > 0)
+        ? Math.round((1 - pr.unit / p.map_usd) * 100) : null;
+
+      // four SKUs in the catalog were scraped without photography. Say so rather
+      // than pointing an <img> at a path that does not exist.
+      // The tile owns the 4:3 box, so there is no layout shift to guard against
+      // and no reason to assert a 120x90 intrinsic size that is wrong for every
+      // one of these cutouts.
+      var src = p.img.thumb || p.img.card || '';
+      var thumb = src
+        ? '<div class="ln-thumb"><img src="' + esc(src) + '" alt="' + esc(p.name) + '" loading="lazy" decoding="async"></div>'
+        : '<div class="ln-thumb no-shot"><span class="micro">No photo on file</span></div>';
+
+      return '' +
+'<div class="line" data-line="' + esc(p.id) + '">' + thumb +
+  '<div class="ln-id">' +
+    '<h3 class="ln-name"><a href="product.html?id=' + encodeURIComponent(p.id) + '">' + esc(p.name) + '</a></h3>' +
+    '<div class="ln-meta">' +
+      '<span><b>' + esc(p.sku) + '</b></span>' +
+      '<span>' + esc(p.brand) + '</span>' +
+      '<span>Case pack ' + inc + ' &middot; min ' + min + '</span>' +
+      // A quote-only SKU has no published MSRP, so it has no MAP either. The
+      // old branch printed "MAP $0.00", which is not a low number — it is a
+      // false one, and it reads as permission to sell at any price.
+      (p.map_usd > 0
+        ? '<span>MAP <b>' + usd(p.map_usd) + '</b>' + (margin != null ? ' &middot; ' + margin + '% at MAP' : '') + '</span>'
+        : '<span>MAP not published</span>') +
+      FS.stockPill(p) +
+    '</div>' + warn +
+  '</div>' +
+  '<div class="ln-unit"><span class="ln-lab">Unit net</span>' +
+    '<span class="ln-money">' + (qo ? 'By quote' : usd(pr.unit)) +
+    (qo ? '<span class="ln-sub">No list price published</span>' :
+          '<span class="ln-sub">' + esc(pr.tier.name) + '</span>') + '</span></div>' +
+  '<div class="ln-qty"><span class="ln-lab">Quantity</span>' +
+    '<span class="stepper">' +
+      '<button type="button" data-step="-1" data-id="' + esc(p.id) + '" aria-label="Decrease quantity of ' + esc(p.sku) + ' by ' + inc + '"' + (q <= min ? ' disabled' : '') + '>&minus;</button>' +
+      '<input type="number" data-qty="' + esc(p.id) + '" value="' + q + '" min="' + min + '" step="' + inc + '" inputmode="numeric" aria-label="Quantity of ' + esc(p.sku) + ', case pack of ' + inc + '">' +
+      '<button type="button" data-step="1" data-id="' + esc(p.id) + '" aria-label="Increase quantity of ' + esc(p.sku) + ' by ' + inc + '">+</button>' +
+    '</span></div>' +
+  '<div class="ln-ext"><span class="ln-lab">Extended</span>' +
+    '<span class="ln-money">' + (qo ? '&mdash;' : usd(pr.ext)) + '</span></div>' +
+  '<div class="ln-rm"><button type="button" class="icon-btn" data-rm="' + esc(p.id) + '" aria-label="Remove ' + esc(p.name) + ' from the draft">&#10005;</button></div>' +
+  nudge +
+  '<div class="ln-note"><label class="micro" for="note-' + esc(p.id) + '">Line note</label>' +
+    '<input class="input" id="note-' + esc(p.id) + '" type="text" data-note="' + esc(p.id) + '" ' +
+    'value="' + esc(meta.notes[p.id] || '') + '" placeholder="Marking, labeling or packing instructions for this line"></div>' +
+'</div>';
+    }).join('');
+
+    $('#linesCount').textContent = t.ls.length + (t.ls.length === 1 ? ' line' : ' lines') + ' · ' + t.units + ' units';
+  }
+
+  /* ---------- render: gauges ---------- */
+  function renderGauges(t) {
+    var carrier = (meta.carrier || '').trim();
+
+    var pctMin = Math.min(100, t.sub / MIN_ORDER * 100);
+    var metMin = t.sub >= MIN_ORDER;
+    $('#gMin').classList.toggle('met', metMin);
+    $('#gMinNum').innerHTML = usd(t.sub) + ' <span>of ' + usd(MIN_ORDER) + '</span>';
+    $('#gMinFill').style.width = pctMin + '%';
+    $('#gMinSay').innerHTML = metMin
+      ? 'Cleared. Merchandise is <b>' + usd(t.sub - MIN_ORDER) + '</b> over the floor.'
+      : 'Blocking. Add <b>' + usd(MIN_ORDER - t.sub) + '</b> of merchandise before this can be submitted.';
+
+    var g = $('#gFrt');
+    g.classList.remove('met', 'na');
+    if (carrier) {
+      g.classList.add('na');
+      $('#gFrtNum').innerHTML = 'Collect <span>on your account</span>';
+      $('#gFrtFill').style.width = '100%';
+      $('#gFrtSay').innerHTML = 'Not applicable &mdash; freight bills to <b>' + esc(carrier) + '</b>.';
+    } else if (t.sub >= FREE_FREIGHT) {
+      g.classList.add('met');
+      $('#gFrtNum').innerHTML = usd(t.sub) + ' <span>of ' + usd(FREE_FREIGHT) + '</span>';
+      $('#gFrtFill').style.width = '100%';
+      $('#gFrtSay').innerHTML = 'Earned. We prepay the freight on this shipment.';
+    } else {
+      $('#gFrtNum').innerHTML = usd(t.sub) + ' <span>of ' + usd(FREE_FREIGHT) + '</span>';
+      $('#gFrtFill').style.width = Math.min(100, t.sub / FREE_FREIGHT * 100) + '%';
+      $('#gFrtSay').innerHTML = 'Add <b>' + usd(FREE_FREIGHT - t.sub) + '</b> more and we prepay the freight. Optional &mdash; this never blocks a submission.';
+    }
+  }
+
+  /* ---------- render: ship-to verdict ---------- */
+  function shipVerdict(t) {
+    var zip = $('#shipZip').value.trim();
+    var st = $('#shipState').value;
+    var box = $('#zipVerdict');
+    var r = restrictionFor(zip, st);
+
+    if (!/^\d{5}$/.test(zip)) {
+      setHTML(box, '<p class="hint" style="margin:0">Enter a five-digit destination ZIP to run the restriction check.</p>');
+      return { blocked: true, reason: 'Destination ZIP is missing or is not five digits.' };
+    }
+    if (!r) {
+      // The clear verdict is a compliance string too, so it carries the same
+      // standing disclaimer the blocked verdict does. It previously did not.
+      setHTML(box, '<div class="flag ok"><h4>Clear to ship</h4>' +
+        '<p>ZIP ' + esc(zip) + ' is outside every blocked band in our matrix: New Jersey statewide, New York City 100xx&ndash;104xx, Chicago 606xx and Philadelphia 191xx. ' +
+        'Marking tier still applies at the state level.</p>' +
+        '<p style="margin:0"><a href="compliance.html">Marking tiers and the full matrix</a> &middot; scoping note, not legal advice.</p></div>');
+      return { blocked: false };
+    }
+    var accessoriesOnly = t.gunLines === 0;
+    setHTML(box, '<div class="flag' + (accessoriesOnly ? ' ok' : '') + '">' +
+      '<h4>' + esc(r.where) + ' &mdash; ' + esc(r.scope) + ' restriction</h4>' +
+      '<p>' + r.why + '</p>' +
+      (accessoriesOnly
+        ? '<p>This draft contains no marked gun SKUs &mdash; parts, magazines and shells only &mdash; so it is not caught by the block. Adding any gun SKU will stop the submission.</p>'
+        : '<p>This draft contains <b>' + t.gunLines + '</b> gun ' + (t.gunLines === 1 ? 'line' : 'lines') +
+          '. Submission is blocked until the destination changes or those lines come off.</p>') +
+      '<p style="margin:0"><a href="compliance.html">Why this ZIP is blocked</a> &middot; scoping note, not legal advice.</p></div>');
+    return accessoriesOnly ? { blocked: false } : { blocked: true, reason: r.where + ' is a blocked destination for marked gun SKUs.' };
+  }
+
+  /* ---------- render: summary ---------- */
+  function renderSummary(t, ship) {
+    var rows = '' +
+      '<div class="sum-row"><dt>Merchandise subtotal</dt><dd>' + usd(t.sub) + '</dd></div>' +
+      '<div class="sum-row"><dt>Estimated freight</dt><dd>' + usd(t.freight) + '</dd></div>' +
+      '<div class="sum-row tot"><dt>Order total</dt><dd>' + usd(t.total) + '</dd></div>';
+    $('#sumRows').innerHTML = rows;
+    $('#sumUnits').textContent = t.units + ' units';
+
+    var note = t.freightWhy;
+    if (t.quoted) {
+      note += ' ' + t.quoted + (t.quoted === 1 ? ' line has' : ' lines have') +
+              ' no published list price and is quoted separately; it is excluded from these totals.';
+    }
+    note += ' Resale exempt on the certificate we hold, so no sales tax is applied.';
+    $('#freightNote').textContent = note;
+
+    var avail = user.creditLimit - user.balance;
+    var remaining = Math.round((avail - t.total) * 100) / 100;
+    var over = remaining < 0;
+    $('#creditBox').innerHTML =
+      '<div class="sum-row"><dt>Credit limit &middot; ' + esc(user.terms) + '</dt><dd>' + usd(user.creditLimit) + '</dd></div>' +
+      '<div class="sum-row"><dt>Open balance</dt><dd>' + usd(user.balance) + '</dd></div>' +
+      '<div class="sum-row"><dt>This order</dt><dd>' + usd(t.total) + '</dd></div>' +
+      '<div class="sum-row rem' + (over ? ' over' : '') + '"><dt>Credit remaining after</dt><dd>' + usd(remaining) + '</dd></div>';
+
+    var blocks = [];
+    if (!t.ls.length) blocks.push('The draft is empty.');
+    if (t.sub < MIN_ORDER) blocks.push('Below the ' + usd(MIN_ORDER) + ' reorder minimum by ' + usd(MIN_ORDER - t.sub) + '.');
+    if (ship.blocked) blocks.push(ship.reason);
+    /* The ZIP check was the ONLY thing standing between an empty ship-to and a
+       submitted draft — a valid ZIP with no street line went straight through. */
+    if (!$('#shipStreet').value.trim()) blocks.push('Ship-to street address is missing.');
+    if (!$('#shipCity').value.trim()) blocks.push('Ship-to city is missing.');
+    if (!$('#shipCo').value.trim()) blocks.push('Ship-to consignee is missing.');
+    var outLines = t.ls.filter(function (l) { return l.p.stock === 'out'; });
+    if (outLines.length) blocks.push(outLines.length + (outLines.length === 1 ? ' line is' : ' lines are') + ' sold out and cannot be allocated.');
+    // A date restored from a previous session can be in the past. The input's
+    // own min attribute never fires because nothing here is a submitted form.
+    var wantDate = $('#shipDate').value;
+    if (wantDate && wantDate < earliestShip) {
+      blocks.push('Requested ship date ' + wantDate + ' is earlier than the next business day (' + earliestShip + ').');
+    }
+    if (over) blocks.push('Exceeds available credit by ' + usd(-remaining) + '. Your rep ' + user.rep + ' can raise the line.');
+
+    setHTML($('#blockers'), blocks.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join(''));
+    var btn = $('#submitBtn');
+    btn.setAttribute('aria-disabled', blocks.length ? 'true' : 'false');
+    setText($('#sumStatus'), 'Order total ' + usd(t.total) + '. ' + (blocks.length
+      ? blocks.length + (blocks.length === 1 ? ' issue is' : ' issues are') + ' blocking submission.'
+      : 'Ready to submit.'));
+    return { blocks: blocks, remaining: remaining };
+  }
+
+  /* ---------- master render ----------
+     Two entry points on purpose. A ship-to keystroke or a carrier edit changes
+     freight and the verdict but cannot change a single line, and rebuilding the
+     whole line list on every character reloaded every thumbnail and destroyed
+     any in-progress edit in the qty and note inputs. renderMoney() is the cheap
+     path; render() is the one that rebuilds lines. */
+  var state = {};
+
+  function renderMoney() {
+    var t = totals();
+    if (!t.ls.length) return render();
+    renderGauges(t);
+    var ship = shipVerdict(t);
+    state = renderSummary(t, ship);
+    state.t = t;
+    return t;
+  }
+
+  function render(focusId) {
+    var t = totals();
+
+    if (!t.ls.length) {
+      $('#lines').innerHTML = '';
+      $('#order').hidden = true;
+      $('#empty').hidden = false;
+      state = { blocks: ['The draft is empty.'] };
+      updateCartBadge();
+      return t;
+    }
+    $('#empty').hidden = true;
+    $('#order').hidden = false;
+
+    renderLines(t);
+    renderGauges(t);
+    var ship = shipVerdict(t);
+    state = renderSummary(t, ship);
+    state.t = t;
+    updateCartBadge();
+
+    if (focusId) {
+      var el = $('[data-qty="' + focusId + '"]');
+      if (el) {
+        el.focus();
+        try { el.setSelectionRange(el.value.length, el.value.length); } catch (e) {}
+      }
+    }
+    return t;
+  }
+
+  function updateCartBadge() {
+    var n = FS.cartCount();
+    var link = document.querySelector('#chrome-header a[href="cart.html"]');
+    if (link) link.textContent = 'Cart' + (n ? ' (' + n + ')' : '');
+  }
+
+  /* ---------- events ---------- */
+  function wireLines() {
+    var host = $('#lines');
+
+    host.addEventListener('click', function (e) {
+      var step = e.target.closest('[data-step]');
+      if (step) {
+        var p = BYID[step.getAttribute('data-id')];
+        if (!p) return;
+        var cur = (FS.cart().find(function (r) { return r.id === p.id; }) || {}).qty || p.minQty;
+        FS.setQty(p.id, stepQty(p, cur, +step.getAttribute('data-step')));
+        render();
+        var again = $('[data-step="' + step.getAttribute('data-step') + '"][data-id="' + p.id + '"]');
+        if (again && !again.disabled) again.focus();
+        return;
+      }
+      var bump = e.target.closest('[data-bump]');
+      if (bump) {
+        FS.setQty(bump.getAttribute('data-bump'), +bump.getAttribute('data-to'));
+        render();
+        return;
+      }
+      var rm = e.target.closest('[data-rm]');
+      if (rm) {
+        FS.setQty(rm.getAttribute('data-rm'), 0);
+        render();
+        var first = $('#lines .icon-btn') || $('#empty a.btn');
+        if (first) first.focus();
+      }
+    });
+
+    host.addEventListener('input', function (e) {
+      var note = e.target.getAttribute && e.target.getAttribute('data-note');
+      if (note) { meta.notes[note] = e.target.value; saveMeta(); }
+    });
+
+    host.addEventListener('change', function (e) {
+      var id = e.target.getAttribute && e.target.getAttribute('data-qty');
+      if (!id) return;
+      var p = BYID[id];
+      if (!p) return;
+      var raw = e.target.value.trim();
+      var v = parseInt(raw, 10);
+      /* An unparseable field is a typo, not an instruction. Deleting a line
+         silently because a dealer selected-all and tabbed away is destructive
+         and has no undo, so a blank or non-numeric entry snaps back to the
+         quantity on file. An explicit 0 or negative is a real remove. */
+      if (raw === '' || isNaN(v)) { render(id); return; }
+      if (v <= 0) { FS.setQty(id, 0); render(); return; }
+      FS.setQty(id, snap(p, v));
+      render(id);
+    });
+
+    /* A focused number input eats the scroll wheel in Chrome and Firefox and
+       silently re-prices the line under the cursor. */
+    host.addEventListener('wheel', function (e) {
+      if (e.target.matches && e.target.matches('input[type="number"]:focus')) e.target.blur();
+    }, { passive: true });
+  }
+
+  function wireForm() {
+    var sel = $('#shipState');
+    sel.innerHTML = STATES.map(function (s) { return '<option value="' + s + '">' + s + '</option>'; }).join('');
+
+    // defaults come from the signed-in account, never from thin air
+    var loc = (user.location || '').split(',');
+    $('#shipCo').value    = meta.shipCo    != null ? meta.shipCo    : (user.company || '');
+    $('#shipStreet').value= meta.shipStreet || '';
+    $('#shipCity').value  = meta.shipCity  != null ? meta.shipCity  : (loc[0] || '').trim();
+    sel.value             = meta.shipState || (loc[1] || '').trim() || 'OH';
+    $('#shipZip').value   = meta.shipZip   || '';
+    $('#po').value        = meta.po        || '';
+    $('#shipDate').value  = meta.shipDate  || '';
+    $('#carrier').value   = meta.carrier   || '';
+    if (meta.fulfil === 'split') $('#fulfilSplit').checked = true;
+
+    $('#shipDate').min = earliestShip;
+
+    var bind = function (id, key, rerender) {
+      var el = $('#' + id);
+      var on = function () {
+        if (meta[key] === el.value) return;   // 'input' and 'change' both fire on a select
+        meta[key] = el.value; saveMeta();
+        if (rerender) renderMoney();
+      };
+      el.addEventListener('input', on);
+      el.addEventListener('change', on);
+    };
+    bind('po', 'po', false);
+    bind('shipDate', 'shipDate', true);   // a stale date is a blocker, so it re-scores
+    bind('shipCo', 'shipCo', true);        // all three are submission blockers,
+    bind('shipStreet', 'shipStreet', true); // so all three have to re-score
+    bind('shipCity', 'shipCity', true);
+    bind('shipState', 'shipState', true);
+    bind('shipZip', 'shipZip', true);
+    bind('carrier', 'carrier', true);
+
+    $$('input[name="fulfil"]').forEach(function (r) {
+      r.addEventListener('change', function () { meta.fulfil = r.value; saveMeta(); renderMoney(); });
+    });
+
+    $$('.chip[data-zip]').forEach(function (c) {
+      c.addEventListener('click', function () {
+        $('#shipZip').value = c.getAttribute('data-zip');
+        $('#shipState').value = c.getAttribute('data-state');
+        meta.shipZip = $('#shipZip').value; meta.shipState = $('#shipState').value;
+        saveMeta(); renderMoney();
+        $('#zipVerdict').scrollIntoView({ block: 'nearest' });
+      });
+    });
+  }
+
+  function wireSubmit() {
+    var dlg = $('#confirmDlg');
+    $('#submitBtn').addEventListener('click', function () {
+      if (state.blocks && state.blocks.length) {
+        var list = $('#blockers');
+        list.scrollIntoView({ block: 'center' });
+        list.setAttribute('tabindex', '-1');
+        list.focus();
+        return;
+      }
+      var t = state.t;
+      $('#dlgRecap').innerHTML =
+        '<li><span>Lines</span><b>' + t.ls.length + ' · ' + t.units + ' units</b></li>' +
+        '<li><span>Merchandise</span><b>' + usd(t.sub) + '</b></li>' +
+        '<li><span>Estimated freight</span><b>' + usd(t.freight) + '</b></li>' +
+        '<li><span>Total</span><b>' + usd(t.total) + '</b></li>' +
+        '<li><span>PO number</span><b>' + esc(meta.po || 'not supplied') + '</b></li>' +
+        '<li><span>Ship to</span><b>' + esc([$('#shipCo').value, $('#shipStreet').value,
+          [$('#shipCity').value, $('#shipState').value, $('#shipZip').value].filter(Boolean).join(' ')]
+          .filter(Boolean).join(', ')) + '</b></li>' +
+        '<li><span>Method</span><b>' + (meta.fulfil === 'split' ? 'Split ship' : 'Ship complete') + '</b></li>';
+      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+    });
+    $('#dlgClose').addEventListener('click', function () {
+      if (dlg.close) dlg.close(); else dlg.removeAttribute('open');
+      $('#submitBtn').focus();
+    });
+  }
+
+  /* ---------- signed-out gate ---------- */
+  function renderGate() {
+    $('#gate').hidden = false;
+    var held = FS.cart();
+    var ul = $('#gateLines');
+    if (!held.length) {
+      ul.hidden = true;
+      $('#gateHint').textContent = '';
+      return;
+    }
+    ul.innerHTML = held.map(function (r) {
+      var p = BYID[r.id];
+      if (!p) return '';
+      return '<li><span><b class="mono">' + esc(p.sku) + '</b> &middot; ' + esc(p.name) + ' &times; ' + r.qty + '</span>' +
+             '<span class="price-gate">Sign in for your price</span></li>';
+    }).join('');
+    $('#gateHint').textContent =
+      'MSRP and MAP are published on the catalog. Net pricing is per account and per quantity, so it is never shown before sign-in.';
+  }
+
+  /* ---------- facts strip ---------- */
+  function renderFacts() {
+    var f = $('#oFacts');
+    if (!user) {
+      f.innerHTML = '<span>Trade accounts only</span><span>Reorder minimum <b>' + usd(MIN_ORDER) +
+                    '</b></span><span>Prepaid freight at <b>' + usd(FREE_FREIGHT) + '</b></span>';
+      return;
+    }
+    f.innerHTML =
+      '<span><b>' + esc(user.company) + '</b></span>' +
+      '<span>' + esc(user.tierName) + '</span>' +
+      '<span>Terms <b>' + esc(user.terms) + '</b></span>' +
+      '<span>Rep <b>' + esc(user.rep) + '</b> · ' + esc(user.repLine) + '</span>';
+  }
+
+  /* ---------- demo seed ---------- */
+  function wireSeed(all) {
+    $('#seedBtn').addEventListener('click', function () {
+      var picks = [];
+      ['Rifles', 'Shotguns', 'Parts & Accessories'].forEach(function (cat) {
+        var hit = all.find(function (p) {
+          return p.category === cat && p.stock === 'in' && p.msrp_usd > 0 &&
+                 picks.indexOf(p) === -1;
+        });
+        if (hit) picks.push(hit);
+      });
+      picks.forEach(function (p) { FS.addToCart(p.id, p.minQty); });
+      render();
+      FS.revealOnScroll();
+      var f = $('#lines .stepper input');
+      if (f) f.focus();
+    });
+  }
+
+  /* ---------- boot ---------- */
+  FS.products().then(function (all) {
+    all.forEach(function (p) { BYID[p.id] = p; });
+    renderFacts();
+
+    // Chrome first: render() updates the header cart badge, and on the very
+    // first pass there was no header in the document yet to update.
+    FS.mountChrome('');
+
+    if (!user) {
+      renderGate();
+    } else {
+      wireSeed(all);
+      wireLines();
+      wireForm();
+      wireSubmit();
+      render();
+    }
+
+    FS.revealOnScroll();
+  }).catch(function (err) {
+    /* The old failure path relabelled the empty-state heading and left the rest
+       of it standing: a lede about the reorder minimum, and a "load a sample
+       draft" button whose handler is only wired on the success path, so it was
+       dead. Replace the whole slab with what is actually true. */
+    var slab = $('#empty').querySelector('.o-slab');
+    slab.innerHTML =
+      '<h2>Catalog data did not load</h2>' +
+      '<p class="lede" style="margin-inline:auto">The product file could not be read, so no line can be' +
+      ' priced and nothing here is trustworthy. Your draft is untouched on this device. Reload, or open' +
+      ' the catalog to confirm the site is up.</p>' +
+      '<div class="btnrow"><a class="btn" href="cart.html">Reload the draft</a>' +
+      '<a class="btn btn-ghost" href="catalog.html">Browse the catalog</a></div>';
+    $('#empty').hidden = false;
+    FS.mountChrome('');
+    FS.revealOnScroll();
+    if (window.console) console.error(err);
+  });
+})();
+</script>
+</body></html>

@@ -1,0 +1,303 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dealer sign in · Fieldstock Supply Co.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  .auth {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr);
+    align-items: stretch;
+    min-height: calc(100vh - 100px);
+    border-top: 1px solid var(--hairline);
+  }
+  .auth-form {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: clamp(32px, 6vw, 84px) var(--gutter);
+  }
+  .auth-inner { width: 100%; max-width: 428px; margin-inline: auto; }
+  .auth-inner h1 { font-size: clamp(2.1rem, 4vw, 3rem); margin-bottom: .5rem; }
+  .auth-sub { color: var(--text-2); font-size: .93rem; margin-bottom: 1.5rem; }
+
+  .demo-note { margin-bottom: 1.6rem; }
+  .demo-note strong { color: var(--text); font-weight: 600; }
+
+  .form-stack { display: flex; flex-direction: column; gap: 1.05rem; }
+  .err {
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .06em;
+    color: var(--danger); min-height: 0;
+  }
+  .err:empty { display: none; }
+  /* A live region that is display:none at the moment its text changes is not
+     reliably announced. The form-level status keeps its box at all times. */
+  .err.live, .err.live:empty { display: block; min-height: 1.05rem; }
+  .check {
+    display: flex; align-items: flex-start; gap: .6rem;
+    font-size: .86rem; color: var(--text-2);
+  }
+  .check input[type="checkbox"] {
+    accent-color: var(--orange); width: 16px; height: 16px;
+    margin: .18rem 0 0; flex: none;
+  }
+  .auth-actions { display: flex; flex-direction: column; gap: .9rem; margin-top: .3rem; }
+  .auth-actions .btn { width: 100%; }
+
+  .auth-alt {
+    margin-top: 1.9rem; padding-top: 1.4rem; border-top: 1px solid var(--hairline);
+    display: flex; flex-wrap: wrap; gap: .5rem 1.6rem; align-items: baseline;
+    font-size: .86rem; color: var(--text-2);
+  }
+  .auth-alt a { color: var(--orange); }
+  .auth-alt a:hover { text-decoration: underline; }
+  .linkish {
+    background: none; border: 0; padding: 0; cursor: pointer;
+    font-size: .86rem; color: var(--text-mute); text-decoration: line-through;
+  }
+  .linkish[disabled] { cursor: not-allowed; }
+  .fp-note {
+    font-family: var(--font-mono); font-size: .62rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-mute);
+  }
+  .signed-in {
+    border: 1px solid var(--hairline-lit); background: var(--surface-1);
+    padding: .8rem 1rem; font-size: .84rem; color: var(--text-2); margin-bottom: 1.3rem;
+  }
+  .signed-in a { color: var(--orange); }
+
+  /* ---- right stage ---- */
+  .auth-stage {
+    position: relative; isolation: isolate; overflow: hidden;
+    border-left: 1px solid var(--hairline);
+    background:
+      radial-gradient(ellipse 66% 52% at 50% 44%, #232825 0%, var(--surface-1) 46%, var(--ground) 78%);
+    display: flex; flex-direction: column; justify-content: center;
+    padding: clamp(30px, 5vw, 68px);
+  }
+  .auth-stage::before {
+    /* two cool rim washes so a black rifle does not read as a silhouette */
+    content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(closest-side at 8% 32%, rgba(214,226,232,.13), transparent 100%),
+      radial-gradient(closest-side at 93% 66%, rgba(214,226,232,.10), transparent 100%);
+  }
+  .stage-inner { position: relative; z-index: 2; width: 100%; max-width: 560px; margin-inline: auto; }
+  .stage-media { display: grid; place-items: center; min-height: 200px; }
+  .stage-media img {
+    width: 100%; height: auto; max-width: 560px;
+    filter: drop-shadow(0 26px 40px rgba(0,0,0,.7));
+  }
+  .stage-line {
+    font-family: var(--font-mono); font-size: .64rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--text-mute);
+    display: flex; gap: .8rem; flex-wrap: wrap; margin-bottom: .7rem;
+  }
+  .stage-name {
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 80, 'wght' 700;
+    text-transform: uppercase; font-size: clamp(1.15rem, 2vw, 1.6rem);
+    line-height: 1.05; margin: 0 0 .9rem;
+  }
+  .stage-facts {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px;
+    background: var(--hairline); border: 1px solid var(--hairline); margin-top: 1.4rem;
+  }
+  .stage-facts div { background: var(--ground); padding: .7rem .8rem; }
+  .stage-facts dt {
+    font-family: var(--font-mono); font-size: .58rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--text-mute); margin-bottom: .3rem;
+  }
+  .stage-facts dd {
+    margin: 0; font-family: var(--font-mono); font-size: .84rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .stage-gate { color: var(--orange); font-size: .7rem !important; letter-spacing: .06em; text-transform: uppercase; }
+  .stage-foot {
+    margin-top: 1.2rem; font-size: .76rem; color: var(--text-mute); max-width: 52ch;
+  }
+  @media (max-width: 980px) {
+    .auth { grid-template-columns: 1fr; min-height: 0; }
+    .auth-stage { border-left: 0; border-bottom: 1px solid var(--hairline); order: -1; }
+    .stage-facts { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 420px) {
+    .auth-form { padding-inline: 20px; }
+  }
+</style>
+</head><body>
+<div id="chrome-header"></div>
+
+<main>
+  <div class="auth">
+
+    <section class="auth-form" aria-labelledby="signinTitle">
+      <div class="auth-inner">
+        <p class="eyebrow">Dealer access</p>
+        <h1 id="signinTitle">Sign in</h1>
+        <p class="auth-sub">Net pricing, stock depth and order history are visible to approved dealer accounts only.</p>
+
+        <div id="alreadyIn" hidden></div>
+
+        <div class="note demo-note" role="note">
+          <strong>Demo environment — any email and password will sign you in.</strong>
+          Do not enter a real password. There is no server behind this form: the password
+          field is never read, stored or transmitted, and the session is a flag in your
+          browser's local storage. Autofill is switched off on the password field so a
+          saved credential is not pulled into a form that does not need one.
+        </div>
+
+        <form id="signinForm" class="form-stack" novalidate>
+          <div class="field">
+            <label for="email">Work email</label>
+            <input class="input" type="email" id="email" name="email"
+                   autocomplete="username" inputmode="email" placeholder="buyer@yourshop.com"
+                   aria-describedby="emailErr" required>
+            <span class="err" id="emailErr"></span>
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input class="input" type="password" id="password" name="password"
+                   autocomplete="off" data-lpignore="true" data-1p-ignore
+                   aria-describedby="passErr" required>
+            <span class="err" id="passErr"></span>
+          </div>
+
+          <label class="check" for="remember">
+            <input type="checkbox" id="remember" name="remember">
+            <span>Remember this device for 30 days. Use only on hardware your company
+              controls. <em>Inert in this demo — the session persists either way until
+              you sign out.</em></span>
+          </label>
+
+          <div class="auth-actions">
+            <button class="btn" type="submit">Sign in to portal</button>
+            <p class="err live" id="formErr" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+
+        <div class="auth-alt">
+          <a href="apply.html">Apply for an account</a>
+          <span>
+            <button type="button" class="linkish" id="forgot" disabled
+                    aria-label="Forgot password — disabled in this demo">Forgot password</button>
+            <span class="fp-note" id="fpNote">Disabled in demo</span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="auth-stage grain" aria-labelledby="stageTitle">
+      <div class="stage-inner">
+        <div class="stage-media" id="stageMedia"></div>
+        <div id="stageCopy">
+          <p class="stage-line">Loading catalog record</p>
+          <h2 class="stage-name" id="stageTitle">Price is the gate, not the product</h2>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<div id="chrome-footer"></div>
+<script src="assets/js/store.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var esc = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+
+  /* ---------- already-signed-in notice ---------- */
+  var u = FS.user();
+  if (u) {
+    var box = document.getElementById('alreadyIn');
+    box.hidden = false;
+    box.className = 'signed-in';
+    box.innerHTML = 'Signed in as <strong>' + esc(u.email) + '</strong> for ' + esc(u.company) +
+      '. <a href="portal.html">Go to the portal</a> or sign in as a different buyer below.';
+  }
+
+  /* ---------- form ---------- */
+  var form = document.getElementById('signinForm');
+  var email = document.getElementById('email');
+  var pass = document.getElementById('password');
+  var emailErr = document.getElementById('emailErr');
+  var passErr = document.getElementById('passErr');
+  var formErr = document.getElementById('formErr');
+
+  function setErr(el, msgEl, msg) {
+    msgEl.textContent = msg || '';
+    el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    return !msg;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    formErr.textContent = '';
+
+    var v = email.value.trim();
+    var okEmail = setErr(email, emailErr,
+      !v ? 'Enter your work email.'
+        : !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) ? 'That does not look like an email address.'
+        : '');
+    // The password is checked for presence only. Its value is never read, kept
+    // or sent anywhere.
+    var okPass = setErr(pass, passErr, pass.value.length ? '' : 'Enter any password — this is a demo.');
+
+    if (!okEmail) { email.focus(); formErr.textContent = 'Fix the field above to continue.'; return; }
+    if (!okPass) { pass.focus(); formErr.textContent = 'Fix the field above to continue.'; return; }
+
+    pass.value = '';
+    FS.signIn(v);
+    formErr.textContent = 'Signed in. Opening the portal…';
+    location.href = 'portal.html';
+  });
+
+  email.addEventListener('input', function () { setErr(email, emailErr, ''); });
+  pass.addEventListener('input', function () { setErr(pass, passErr, ''); });
+
+  /* ---------- stage: one real hero cutout on a dark radial stage ---------- */
+  FS.products().then(function (all) {
+    var p = all.find(function (x) { return x.id === 'raven-470'; }) ||
+            all.find(function (x) { return x.brand === 'Raven Evolution' && x.category === 'Rifles' && x.img.hero; });
+    if (!p) return;
+
+    document.getElementById('stageMedia').innerHTML =
+      '<img src="' + esc(p.img.hero) + '" width="951" height="322" ' +
+      'alt="' + esc(p.name) + ' — studio photograph, left profile" fetchpriority="high">';
+
+    var dealer = FS.user();
+    var priceSlot = dealer
+      ? '<dd>' + esc(FS.usd(FS.netPrice(p, p.minQty))) + '</dd>'
+      : '<dd class="stage-gate">Sign in for your price</dd>';
+    var priceLabel = dealer ? 'Your net / unit at ' + p.minQty : 'Dealer net';
+
+    document.getElementById('stageCopy').innerHTML =
+      '<p class="stage-line"><span>' + esc(p.line || p.brand) + '</span><span>' + esc(p.sku) + '</span>' +
+        FS.stockPill(p) + '</p>' +
+      '<h2 class="stage-name" id="stageTitle">' + esc(p.name) + '</h2>' +
+      '<dl class="stage-facts">' +
+        '<div><dt>MSRP</dt><dd>' + esc(FS.usd(p.msrp_usd)) + '</dd></div>' +
+        '<div><dt>MAP floor</dt><dd>' + esc(FS.usd(p.map_usd)) + '</dd></div>' +
+        '<div><dt>' + esc(priceLabel) + '</dt>' + priceSlot + '</div>' +
+      '</dl>' +
+      '<p class="stage-foot">Public pages carry MSRP and the MAP floor. Dealer net, case-pack ' +
+      'depth and on-hand counts sit behind this sign-in. Photograph is the actual ' +
+      esc(p.sku) + ' unit we stock.</p>';
+  }).catch(function () {
+    document.getElementById('stageCopy').innerHTML =
+      '<p class="stage-line">Catalog unavailable</p>' +
+      '<h2 class="stage-name" id="stageTitle">Sign in to continue</h2>';
+  });
+
+  FS.mountChrome('');
+  FS.revealOnScroll();
+})();
+</script>
+</body></html>

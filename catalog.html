@@ -1,0 +1,815 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catalog · Fieldstock Supply Co.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  /* ---- page-scoped layout only. No token is redefined here. ---- */
+  .cat-head { padding-top: 2.2rem; padding-bottom: 1.4rem; }
+  .cat-head h1 { font-size: clamp(2.1rem, 4.6vw, 3.4rem); margin-bottom: .55rem; }
+  .crumb {
+    font-family: var(--font-mono); font-size: .66rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--text-mute); margin-bottom: 1rem;
+  }
+  .crumb a:hover { color: var(--orange); }
+  .crumb span[aria-current] { color: var(--text-2); }
+  .cat-head .lede { margin-bottom: 0; }
+
+  /* ---- two column ---- */
+  .cat-layout {
+    display: grid; grid-template-columns: 260px minmax(0, 1fr);
+    gap: clamp(20px, 2.4vw, 38px); align-items: start;
+    padding-bottom: clamp(56px, 8vw, 110px);
+  }
+  .rail {
+    position: sticky; top: 78px;
+    max-height: calc(100vh - 96px); overflow-y: auto; overscroll-behavior: contain;
+    border: 1px solid var(--hairline); background: var(--surface-1);
+    padding: .2rem 0 .4rem;
+  }
+  .rail::-webkit-scrollbar { width: 8px; }
+  .rail::-webkit-scrollbar-thumb { background: var(--hairline-lit); }
+
+  .facet { border-bottom: 1px solid var(--hairline); }
+  .facet:last-of-type { border-bottom: 0; }
+  .facet > summary {
+    list-style: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between; gap: .6rem;
+    padding: .8rem 1rem;
+    font-family: var(--font-mono); font-size: .66rem; font-weight: 500;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--text-2);
+  }
+  .facet > summary::-webkit-details-marker { display: none; }
+  .facet > summary:hover { color: var(--text); }
+  .facet > summary .chev {
+    width: 8px; height: 8px; border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor; transform: rotate(45deg) translate(-2px,-2px);
+    transition: transform var(--t-fast); flex: none;
+  }
+  .facet[open] > summary .chev { transform: rotate(-135deg) translate(-2px,-2px); }
+  .facet-body { padding: 0 1rem 1rem; }
+  .facet-search {
+    background: var(--surface-2); border: 1px solid var(--hairline);
+    border-radius: var(--r); padding: .38rem .55rem; width: 100%;
+    font-family: var(--font-mono); font-size: .72rem; margin-bottom: .55rem;
+  }
+  /* Border shift is the hover/typing affordance; the global :focus-visible
+     outline is left intact so keyboard focus stays visible (WCAG 2.4.7). */
+  .facet-search:focus { border-color: var(--orange); }
+  .opts { display: flex; flex-direction: column; gap: .12rem; max-height: 268px; overflow-y: auto; }
+  .opt {
+    display: grid; grid-template-columns: 14px 1fr auto; align-items: center;
+    gap: .55rem; padding: .26rem .1rem; cursor: pointer;
+    font-size: .81rem; color: var(--text-2); line-height: 1.3;
+  }
+  .opt:hover { color: var(--text); }
+  .opt input { accent-color: var(--orange); width: 14px; height: 14px; margin: 0; cursor: pointer; }
+  .opt .n {
+    font-family: var(--font-mono); font-size: .66rem; color: var(--text-mute);
+    font-variant-numeric: tabular-nums;
+  }
+  .opt.zero { opacity: .38; cursor: not-allowed; }
+  .opt.zero input { cursor: not-allowed; }
+  .opt.hidden { display: none; }
+  .opt-empty { font-size: .76rem; color: var(--text-mute); padding: .3rem 0; }
+
+  .range-row { display: grid; grid-template-columns: 1fr 10px 1fr; align-items: end; gap: .4rem; }
+  .range-row .dash { text-align: center; color: var(--text-mute); padding-bottom: .55rem; }
+  .range-row input {
+    background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r);
+    padding: .4rem .5rem; width: 100%; font-family: var(--font-mono); font-size: .78rem;
+  }
+  .range-row input:focus { border-color: var(--orange); }
+  .range-row label {
+    font-family: var(--font-mono); font-size: .58rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--text-mute); display: block; margin-bottom: .25rem;
+  }
+  .range-note { font-family: var(--font-mono); font-size: .64rem; color: var(--text-mute); margin-top: .5rem; }
+
+  /* ---- toolbar ---- */
+  .toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: .7rem;
+    padding-bottom: .9rem; border-bottom: 1px solid var(--hairline); margin-bottom: 1.1rem;
+  }
+  .search-wrap { position: relative; flex: 1 1 260px; min-width: 200px; }
+  .search-wrap input {
+    background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r);
+    padding: .6rem .8rem .6rem 2.1rem; width: 100%; font-size: .88rem;
+  }
+  .search-wrap input:focus { border-color: var(--orange); }
+  .search-wrap .ico {
+    position: absolute; left: .78rem; top: 50%; transform: translateY(-50%);
+    width: 11px; height: 11px; border: 1.5px solid var(--text-mute); border-radius: 50%;
+    pointer-events: none;
+  }
+  .search-wrap .ico::after {
+    content: ''; position: absolute; right: -5px; bottom: -4px; width: 6px; height: 1.5px;
+    background: var(--text-mute); transform: rotate(45deg);
+  }
+  .sort-wrap { display: flex; align-items: center; gap: .5rem; }
+  .sort-wrap label {
+    font-family: var(--font-mono); font-size: .62rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--text-mute);
+  }
+  .sort-wrap select {
+    background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r);
+    padding: .55rem .7rem; font-size: .82rem;
+  }
+  .sort-wrap select:focus { border-color: var(--orange); }
+  .count {
+    font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em;
+    color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .count b { color: var(--text); font-weight: 500; }
+  .count:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+
+  #filterToggle { display: none; }
+
+  /* .grid-products/.pager set display, which outranks the UA [hidden] rule */
+  [hidden] { display: none !important; }
+
+  /* ---- active chips ---- */
+  .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1.1rem; }
+  .chips:empty { display: none; }
+  .chip {
+    display: inline-flex; align-items: center; gap: .45rem;
+    background: var(--surface-2); border: 1px solid var(--hairline-lit);
+    border-radius: var(--r); padding: .28rem .5rem .28rem .6rem; cursor: pointer;
+    font-family: var(--font-mono); font-size: .66rem; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--text-2);
+    transition: border-color var(--t-fast), color var(--t-fast);
+  }
+  .chip:hover { border-color: var(--orange); color: var(--text); }
+  .chip .x { font-size: .9rem; line-height: 1; color: var(--text-mute); }
+  .chip:hover .x { color: var(--orange); }
+  .chip.clear { border-style: dashed; }
+
+  /* ---- grid ---- */
+  .card-media img { height: 100%; }
+  .card-noimg {
+    width: 100%; height: 100%; display: grid; place-items: center; gap: .3rem;
+    border: 1px dashed var(--hairline-lit); align-content: center;
+    font-family: var(--font-mono); font-size: .6rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--text-mute); text-align: center; padding: .6rem;
+  }
+  .card-gate { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .08em; }
+  .card-gate.tier { color: var(--text-mute); text-transform: uppercase; }
+
+  /* ---- empty ---- */
+  .empty {
+    border: 1px dashed var(--hairline-lit); padding: clamp(2.2rem, 6vw, 4rem) 1.4rem;
+    text-align: center;
+  }
+  .empty h2 { font-size: 1.35rem; margin-bottom: .6rem; }
+  .empty p { color: var(--text-2); max-width: 46ch; margin-inline: auto; }
+
+  /* ---- pagination ---- */
+  .pager { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: 1.6rem; }
+  .pager a, .pager span.gap {
+    min-width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--hairline); border-radius: var(--r);
+    font-family: var(--font-mono); font-size: .74rem; color: var(--text-2);
+    padding-inline: .55rem; font-variant-numeric: tabular-nums;
+    transition: border-color var(--t-fast), color var(--t-fast), background var(--t-fast);
+  }
+  .pager a:hover { border-color: var(--orange); color: var(--text); }
+  .pager a[aria-current] { background: var(--orange); border-color: var(--orange); color: var(--on-orange); }
+  .pager a.off { opacity: .34; pointer-events: none; }
+  .pager span.gap { border-color: transparent; color: var(--text-mute); }
+  .pager .pager-note { margin-left: auto; font-family: var(--font-mono); font-size: .68rem; color: var(--text-mute); }
+
+  /* ---- responsive ---- */
+  @media (max-width: 980px) {
+    .cat-layout { grid-template-columns: 1fr; }
+    .rail { position: static; max-height: none; overflow: visible; display: none; order: -1; }
+    .rail.open { display: block; }
+    #filterToggle { display: inline-flex; }
+    .toolbar { row-gap: .6rem; }
+  }
+  @media (max-width: 560px) {
+    .search-wrap { flex: 1 1 100%; }
+    .sort-wrap { flex: 1 1 100%; }
+    .sort-wrap select { flex: 1; }
+    .pager .pager-note { width: 100%; margin-left: 0; }
+  }
+</style>
+</head><body>
+<div id="chrome-header"></div>
+
+<main>
+  <div class="wrap cat-head">
+    <nav class="crumb" aria-label="Breadcrumb">
+      <a href="index.html">Home</a> / <span aria-current="page">Catalog</span>
+    </nav>
+    <h1>Catalog</h1>
+    <p class="lede">Every SKU we import, with its stock state showing; sign in and the list
+      switches to your net pricing.</p>
+  </div>
+
+  <div class="wrap cat-layout">
+    <!-- ---------- facet rail ---------- -->
+    <aside class="rail" id="rail" aria-label="Filters">
+      <div id="facets"></div>
+    </aside>
+
+    <!-- ---------- results ---------- -->
+    <section aria-label="Products">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="ico" aria-hidden="true"></span>
+          <label class="sr-only" for="q" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">Search products by name or SKU</label>
+          <input id="q" type="search" placeholder="Search name or SKU" autocomplete="off" spellcheck="false">
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="filterToggle" aria-expanded="false" aria-controls="rail">Filters</button>
+        <div class="sort-wrap">
+          <label for="sort">Sort</label>
+          <select id="sort">
+            <option value="name">Name A–Z</option>
+            <option value="price-asc">MSRP low → high</option>
+            <option value="price-desc">MSRP high → low</option>
+            <option value="avail">Availability</option>
+          </select>
+        </div>
+        <p class="count" id="resultCount" tabindex="-1" aria-live="polite" aria-atomic="true">Loading catalog…</p>
+      </div>
+
+      <div class="chips" id="chips"></div>
+
+      <div class="grid-products" id="grid" hidden></div>
+      <div id="empty" hidden></div>
+
+      <nav class="pager" id="pager" aria-label="Catalog pages" hidden></nav>
+    </section>
+  </div>
+</main>
+
+<template id="cardTpl">
+  <article class="card reveal">
+    <div class="card-media"></div>
+    <div class="card-sku"><span class="js-sku mono"></span><span class="js-tag"></span></div>
+    <h2 class="card-name"><a class="js-link"></a></h2>
+    <div class="card-foot">
+      <div class="price"><span class="js-price"></span><small class="js-pricesub"></small></div>
+      <span class="js-pill"></span>
+    </div>
+    <div class="card-gate js-gate"></div>
+  </article>
+</template>
+
+<div id="chrome-footer"></div>
+<script src="assets/js/store.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  const PER_PAGE = 48;
+  const MINI_SEARCH_AT = 12;          // a group with more options than this gets its own search box
+
+  /* Facet groups. `key` is also the URL param name. */
+  const GROUPS = [
+    { key: 'brand',    label: 'Brand',        field: 'brand' },
+    { key: 'category', label: 'Category',     field: 'category' },
+    { key: 'sub',      label: 'Subcategory',  field: 'subcategory' },
+    { key: 'line',     label: 'Product line', field: 'line' },
+    { key: 'stock',    label: 'Availability', field: 'stock',
+      order: ['in', 'back', 'out'],
+      labels: { in: 'In stock', back: 'On the water', out: 'Sold out' } }
+  ];
+
+  const SORTS = ['name', 'price-asc', 'price-desc', 'avail'];
+  const AVAIL_RANK = { in: 0, back: 1, out: 2 };
+
+  let ALL = [];
+  let OPTIONS = {};                   // key -> [value, …]
+  let PRICE_MIN = 0, PRICE_MAX = 0;   // over PRICED SKUs only
+  let UNPRICED = 0;                   // SKUs carrying no published MSRP
+  let signedIn = false;
+
+  const S = { q: '', brand: [], category: [], sub: [], line: [], stock: [],
+              min: null, max: null, sort: 'name', page: 1 };
+
+  const $ = id => document.getElementById(id);
+  const grid = $('grid'), chipBar = $('chips'), pager = $('pager'),
+        empty = $('empty'), countEl = $('resultCount'), tpl = $('cardTpl');
+
+  /* ---------------- URL state ---------------- */
+  function readURL() {
+    const p = new URLSearchParams(location.search);
+    GROUPS.forEach(g => {
+      // We write comma-joined, but accept repeated params too (?line=A&line=B),
+      // which is what a hand-built or third-party link is likely to use. Reading
+      // only the first would drop the rest of the filter silently.
+      const raw = p.getAll(g.key).join(',');
+      S[g.key] = [...new Set(raw.split(',').map(v => v.trim()).filter(Boolean))];
+    });
+    S.q = p.get('q') || '';
+    const min = parseFloat(p.get('min')), max = parseFloat(p.get('max'));
+    S.min = Number.isFinite(min) ? min : null;
+    S.max = Number.isFinite(max) ? max : null;
+    const sort = p.get('sort');
+    S.sort = SORTS.includes(sort) ? sort : 'name';
+    const page = parseInt(p.get('page'), 10);
+    S.page = Number.isFinite(page) && page > 0 ? page : 1;
+  }
+
+  function queryString() {
+    const p = new URLSearchParams();
+    GROUPS.forEach(g => { if (S[g.key].length) p.set(g.key, S[g.key].join(',')); });
+    if (S.q) p.set('q', S.q);
+    if (S.min != null) p.set('min', S.min);
+    if (S.max != null) p.set('max', S.max);
+    if (S.sort !== 'name') p.set('sort', S.sort);
+    if (S.page > 1) p.set('page', S.page);
+    const s = p.toString();
+    return s ? '?' + s : location.pathname;
+  }
+
+  /* Typing in a search box uses replaceState so one query does not bury the
+     back button under 20 history entries. Every other change pushes. */
+  function writeURL(push) {
+    const url = queryString();
+    try { history[push ? 'pushState' : 'replaceState']({}, '', url); } catch (e) { /* file:// */ }
+  }
+
+  function commit(push = true) { writeURL(push); render(); }
+
+  /* ---------------- filtering ---------------- */
+  function matches(p, skip) {
+    if (skip !== 'q' && S.q) {
+      const q = S.q.toLowerCase();
+      if (!p.name.toLowerCase().includes(q) && !p.sku.toLowerCase().includes(q)) return false;
+    }
+    for (const g of GROUPS) {
+      if (skip === g.key) continue;
+      const sel = S[g.key];
+      if (sel.length && !sel.includes(p[g.field])) return false;
+    }
+    if (skip !== 'price' && (S.min != null || S.max != null)) {
+      // msrp_usd 0 means "MSRP on request", not "free". Unpriced SKUs must not
+      // fall inside a $0–$X band just because the placeholder happens to be zero.
+      if (!(p.msrp_usd > 0)) return false;
+      if (S.min != null && !(p.msrp_usd >= S.min)) return false;
+      if (S.max != null && !(p.msrp_usd <= S.max)) return false;
+    }
+    return true;
+  }
+
+  function sorted(list) {
+    const by = S.sort;
+    const arr = list.slice();
+    const rank = s => AVAIL_RANK[s] == null ? 9 : AVAIL_RANK[s];
+    /* Unpriced SKUs (msrp 0 = "on request") sort to the bottom of BOTH price
+       directions. Treating 0 as the cheapest price in the catalog would lead
+       "MSRP low → high" with 17 lines that carry no price at all. */
+    const unpriced = p => (p.msrp_usd > 0 ? 0 : 1);
+    arr.sort((a, b) => {
+      if (by === 'price-asc')
+        return unpriced(a) - unpriced(b) || a.msrp_usd - b.msrp_usd || a.name.localeCompare(b.name);
+      if (by === 'price-desc')
+        return unpriced(a) - unpriced(b) || b.msrp_usd - a.msrp_usd || a.name.localeCompare(b.name);
+      if (by === 'avail')
+        return rank(a.stock) - rank(b.stock) || a.name.localeCompare(b.name);
+      return a.name.localeCompare(b.name);
+    });
+    return arr;
+  }
+
+  /* ---------------- facet rail (built once, updated in place) ---------------- */
+  function buildFacets() {
+    const host = $('facets');
+    const frag = document.createDocumentFragment();
+
+    GROUPS.forEach((g, i) => {
+      const values = g.order
+        ? g.order.filter(v => ALL.some(p => p[g.field] === v))
+        : [...new Set(ALL.map(p => p[g.field]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      OPTIONS[g.key] = values;
+
+      const d = document.createElement('details');
+      d.className = 'facet';
+      d.dataset.group = g.key;
+      d.open = i < 4 || values.length <= 6;
+
+      const sum = document.createElement('summary');
+      const sname = document.createElement('span'); sname.textContent = g.label;
+      const chev = document.createElement('span'); chev.className = 'chev'; chev.setAttribute('aria-hidden', 'true');
+      sum.append(sname, chev);
+
+      const body = document.createElement('div');
+      body.className = 'facet-body';
+
+      if (values.length > MINI_SEARCH_AT) {
+        const s = document.createElement('input');
+        s.type = 'search'; s.className = 'facet-search';
+        s.placeholder = 'Filter ' + g.label.toLowerCase();
+        s.setAttribute('aria-label', 'Filter the ' + g.label.toLowerCase() + ' options');
+        s.addEventListener('input', () => {
+          const t = s.value.trim().toLowerCase();
+          let shown = 0;
+          body.querySelectorAll('.opt').forEach(o => {
+            const hit = !t || o.dataset.text.includes(t);
+            o.classList.toggle('hidden', !hit);
+            if (hit) shown++;
+          });
+          body.querySelector('.opt-empty').hidden = shown > 0;
+        });
+        body.appendChild(s);
+      }
+
+      const list = document.createElement('div');
+      list.className = 'opts';
+      values.forEach(v => {
+        const label = document.createElement('label');
+        label.className = 'opt';
+        label.dataset.value = v;
+        const text = (g.labels && g.labels[v]) || v;
+        label.dataset.text = text.toLowerCase();
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.value = v; cb.dataset.group = g.key;
+        cb.addEventListener('change', () => {
+          const sel = S[g.key];
+          if (cb.checked) { if (!sel.includes(v)) sel.push(v); }
+          else { S[g.key] = sel.filter(x => x !== v); }
+          S.page = 1;
+          commit();
+        });
+
+        const name = document.createElement('span'); name.textContent = text;
+        const n = document.createElement('span'); n.className = 'n'; n.textContent = '0';
+        label.append(cb, name, n);
+        list.appendChild(label);
+      });
+      const none = document.createElement('p');
+      none.className = 'opt-empty'; none.textContent = 'No matching options.'; none.hidden = true;
+
+      body.append(list, none);
+      d.append(sum, body);
+      frag.appendChild(d);
+    });
+
+    /* MSRP range */
+    const d = document.createElement('details');
+    d.className = 'facet'; d.dataset.group = 'price'; d.open = true;
+    const sum = document.createElement('summary');
+    const sname = document.createElement('span'); sname.textContent = 'MSRP range';
+    const chev = document.createElement('span'); chev.className = 'chev'; chev.setAttribute('aria-hidden', 'true');
+    sum.append(sname, chev);
+
+    const body = document.createElement('div'); body.className = 'facet-body';
+    const row = document.createElement('div'); row.className = 'range-row';
+    const mk = (id, label, ph) => {
+      const w = document.createElement('div');
+      const l = document.createElement('label'); l.htmlFor = id; l.textContent = label;
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.id = id; inp.min = '0'; inp.max = String(Math.ceil(PRICE_MAX));
+      inp.step = '1'; inp.inputMode = 'numeric'; inp.placeholder = ph;
+      w.append(l, inp); return { w, inp };
+    };
+    const lo = mk('msrpMin', 'Min USD', String(Math.floor(PRICE_MIN)));
+    const dash = document.createElement('span'); dash.className = 'dash'; dash.textContent = '–';
+    const hi = mk('msrpMax', 'Max USD', String(Math.ceil(PRICE_MAX)));
+    row.append(lo.w, dash, hi.w);
+
+    const note = document.createElement('p');
+    note.className = 'range-note'; note.id = 'rangeNote';
+
+    const onRange = debounce(() => {
+      const a = parseFloat(lo.inp.value), b = parseFloat(hi.inp.value);
+      S.min = Number.isFinite(a) ? a : null;
+      S.max = Number.isFinite(b) ? b : null;
+      S.page = 1;
+      commit(false);
+    }, 200);
+    lo.inp.addEventListener('input', onRange);
+    hi.inp.addEventListener('input', onRange);
+
+    body.append(row, note);
+    d.append(sum, body);
+    frag.appendChild(d);
+
+    host.appendChild(frag);
+  }
+
+  function updateFacetCounts() {
+    GROUPS.forEach(g => {
+      const pool = ALL.filter(p => matches(p, g.key));
+      const counts = new Map();
+      pool.forEach(p => counts.set(p[g.field], (counts.get(p[g.field]) || 0) + 1));
+      document.querySelectorAll('.facet[data-group="' + g.key + '"] .opt').forEach(o => {
+        const v = o.dataset.value;
+        const n = counts.get(v) || 0;
+        const cb = o.querySelector('input');
+        cb.checked = S[g.key].includes(v);
+        cb.disabled = n === 0 && !cb.checked;
+        o.classList.toggle('zero', cb.disabled);
+        o.querySelector('.n').textContent = n;
+      });
+    });
+    /* State the real published band, not "$0–". The floor is the cheapest SKU we
+       actually publish a price for, and the SKUs with no published MSRP are named
+       rather than folded into the range. */
+    /* Round the band outward — floor the floor, ceil the ceiling — so the stated
+       range always contains every real price instead of clipping one off. */
+    const money0 = n => '$' + n.toLocaleString('en-US');
+    $('rangeNote').textContent = 'Published MSRP runs ' + money0(Math.floor(PRICE_MIN))
+      + '–' + money0(Math.ceil(PRICE_MAX))
+      + (UNPRICED ? '. ' + UNPRICED + ' SKUs are priced on request and are excluded by any range.' : '.');
+    const lo = $('msrpMin'), hi = $('msrpMax');
+    if (document.activeElement !== lo) lo.value = S.min == null ? '' : S.min;
+    if (document.activeElement !== hi) hi.value = S.max == null ? '' : S.max;
+  }
+
+  /* ---------------- active chips ---------------- */
+  function labelFor(g, v) { return (g.labels && g.labels[v]) || v; }
+
+  function renderChips() {
+    chipBar.textContent = '';
+    const frag = document.createDocumentFragment();
+    let any = false;
+
+    const chip = (text, onRemove) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip';
+      const t = document.createElement('span'); t.textContent = text;
+      const x = document.createElement('span'); x.className = 'x'; x.textContent = '×'; x.setAttribute('aria-hidden', 'true');
+      b.append(t, x);
+      b.setAttribute('aria-label', 'Remove filter ' + text);
+      b.addEventListener('click', () => { onRemove(); S.page = 1; commit(); countEl.focus(); });
+      frag.appendChild(b); any = true;
+    };
+
+    if (S.q) chip('Search: ' + S.q, () => { S.q = ''; $('q').value = ''; });
+    GROUPS.forEach(g => S[g.key].forEach(v =>
+      chip(g.label + ': ' + labelFor(g, v), () => { S[g.key] = S[g.key].filter(x => x !== v); })));
+    if (S.min != null) chip('MSRP ≥ $' + S.min, () => { S.min = null; });
+    if (S.max != null) chip('MSRP ≤ $' + S.max, () => { S.max = null; });
+
+    if (any) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip clear'; b.textContent = 'Clear all';
+      b.addEventListener('click', clearAll);
+      frag.appendChild(b);
+    }
+    chipBar.appendChild(frag);
+  }
+
+  function clearAll() {
+    GROUPS.forEach(g => { S[g.key] = []; });
+    S.q = ''; S.min = null; S.max = null; S.page = 1;
+    $('q').value = '';
+    /* The mini search boxes are view-only, so they are not in S — reset them by
+       hand or "Clear all" leaves options still filtered out of the rail. */
+    document.querySelectorAll('.facet-search').forEach(s => { s.value = ''; });
+    document.querySelectorAll('.opt.hidden').forEach(o => o.classList.remove('hidden'));
+    document.querySelectorAll('.opt-empty').forEach(o => { o.hidden = true; });
+    commit();
+    countEl.focus();
+  }
+
+  /* ---------------- cards ---------------- */
+  /* Brand + line, without saying "Raven Raven" or "Matador Matador". */
+  function brandLine(p) {
+    if (!p.line) return p.brand || '';
+    if (p.line === 'Matador') return 'Matador Tactical';
+    if (p.line.indexOf('Raven') === 0) return p.line;
+    return (p.brand || '').split(' ')[0] + ' · ' + p.line;
+  }
+
+  /* FS.stockPill returns trusted markup from the shared layer. Parse each
+     distinct string once and clone, so a 48-card render does no repeat HTML
+     parsing while store.js stays the single source of the stock wording. */
+  const PILL_CACHE = new Map();
+  function pillFor(p) {
+    const html = FS.stockPill(p);
+    let node = PILL_CACHE.get(html);
+    if (!node) {
+      const t = document.createElement('template');
+      t.innerHTML = html;
+      node = t.content.firstElementChild;
+      PILL_CACHE.set(html, node);
+    }
+    return node.cloneNode(true);
+  }
+
+  function cardFor(p) {
+    const node = tpl.content.firstElementChild.cloneNode(true);
+
+    const media = node.querySelector('.card-media');
+    if (p.img && p.img.card) {
+      const img = document.createElement('img');
+      img.src = p.img.card;
+      img.alt = p.name;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.style.aspectRatio = '4 / 3';
+      media.appendChild(img);
+    } else {
+      const ph = document.createElement('div');
+      ph.className = 'card-noimg';
+      ph.append('Photo pending', document.createElement('br'), p.sku);
+      media.appendChild(ph);
+    }
+
+    node.querySelector('.js-sku').textContent = p.sku;
+    node.querySelector('.js-tag').textContent = brandLine(p);
+
+    const a = node.querySelector('.js-link');
+    a.href = 'product.html?id=' + encodeURIComponent(p.id);
+    a.textContent = p.name;
+
+    const priceEl = node.querySelector('.js-price');
+    const subEl = node.querySelector('.js-pricesub');
+    const gate = node.querySelector('.js-gate');
+    const net = FS.netPrice(p, p.minQty);          // null when signed out — the price is the gate
+
+    if (net != null) {
+      if (net > 0) {
+        priceEl.textContent = FS.usd(net);
+        subEl.textContent = 'Your net at ' + p.minQty;
+        gate.className = 'card-gate tier js-gate';
+        /* Name the *volume break* this price sits on. A bare "Tier 3 — Stocking
+           Dealer" on the card reads as the account tier, which is a different
+           thing and is Tier 2 for this dealer. */
+        gate.textContent = 'Break at ' + p.minQty + ': ' + FS.tierFor(p, p.minQty).name;
+      } else {
+        priceEl.textContent = 'Quote';
+        subEl.textContent = 'Priced by your rep';
+        gate.className = 'card-gate tier js-gate';
+        gate.textContent = 'Contact D. Almeida';
+      }
+    } else {
+      if (p.msrp_usd > 0) {
+        priceEl.textContent = FS.usd(p.msrp_usd);
+        subEl.textContent = 'MSRP · MAP ' + FS.usd(p.map_usd);
+      } else {
+        priceEl.textContent = '—';
+        subEl.textContent = 'MSRP on request';
+      }
+      gate.className = 'card-gate price-gate js-gate';
+      gate.textContent = 'Sign in for your price';
+    }
+
+    const pill = node.querySelector('.js-pill');
+    pill.replaceWith(pillFor(p));
+    return node;
+  }
+
+  /* ---------------- pagination ---------------- */
+  function renderPager(total, pages) {
+    pager.textContent = '';
+    if (pages <= 1) { pager.hidden = true; return; }
+    pager.hidden = false;
+    const frag = document.createDocumentFragment();
+
+    const link = (n, text, opts = {}) => {
+      const a = document.createElement('a');
+      const prev = S.page; S.page = n;
+      a.href = queryString(); S.page = prev;
+      a.textContent = text;
+      if (opts.current) a.setAttribute('aria-current', 'page');
+      if (opts.off) { a.classList.add('off'); a.setAttribute('aria-disabled', 'true'); a.removeAttribute('href'); }
+      else {
+        a.setAttribute('aria-label', opts.label || ('Page ' + n));
+        a.addEventListener('click', e => { e.preventDefault(); goToPage(n); });
+      }
+      frag.appendChild(a);
+    };
+    const gap = () => {
+      const s = document.createElement('span');
+      s.className = 'gap'; s.textContent = '…'; s.setAttribute('aria-hidden', 'true');
+      frag.appendChild(s);
+    };
+
+    link(S.page - 1, '‹ Prev', { off: S.page === 1, label: 'Previous page' });
+    const nums = new Set([1, pages, S.page, S.page - 1, S.page + 1]);
+    if (S.page <= 3) [2, 3, 4].forEach(n => nums.add(n));
+    if (S.page >= pages - 2) [pages - 1, pages - 2, pages - 3].forEach(n => nums.add(n));
+    const list = [...nums].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+    list.forEach((n, i) => {
+      if (i && n - list[i - 1] > 1) gap();
+      link(n, String(n), { current: n === S.page });
+    });
+    link(S.page + 1, 'Next ›', { off: S.page === pages, label: 'Next page' });
+
+    const note = document.createElement('span');
+    note.className = 'pager-note';
+    const first = (S.page - 1) * PER_PAGE + 1;
+    note.textContent = first + '–' + Math.min(S.page * PER_PAGE, total) + ' of ' + total;
+    frag.appendChild(note);
+
+    pager.appendChild(frag);
+  }
+
+  function goToPage(n) {
+    S.page = n;
+    commit();
+    const top = document.querySelector('.cat-layout');
+    if (top) top.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  /* ---------------- empty state ---------------- */
+  function renderEmpty() {
+    empty.textContent = '';
+    const box = document.createElement('div');
+    box.className = 'empty';
+    const h = document.createElement('h2'); h.textContent = 'Nothing matches that';
+    const p = document.createElement('p');
+    p.textContent = 'No SKU in the ' + ALL.length + '-line catalog satisfies every filter you have on. '
+      + 'Drop one of the chips above, or reset the whole set.';
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn btn-ghost'; b.style.marginTop = '1.2rem';
+    b.textContent = 'Clear all filters';
+    b.addEventListener('click', clearAll);
+    box.append(h, p, b);
+    empty.appendChild(box);
+  }
+
+  /* ---------------- main render ---------------- */
+  function render() {
+    signedIn = !!FS.user();
+
+    const list = sorted(ALL.filter(p => matches(p, null)));
+    const total = list.length;
+    const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+    if (S.page > pages) { S.page = pages; writeURL(false); }
+
+    updateFacetCounts();
+    renderChips();
+
+    $('sort').value = S.sort;
+
+    countEl.innerHTML = '';
+    const b = document.createElement('b');
+    b.textContent = total.toLocaleString('en-US');
+    countEl.append(b, document.createTextNode(
+      ' of ' + ALL.length + ' SKUs' + (pages > 1 ? ' · page ' + S.page + ' of ' + pages : '')));
+
+    const slice = list.slice((S.page - 1) * PER_PAGE, S.page * PER_PAGE);
+    const frag = document.createDocumentFragment();
+    slice.forEach(p => frag.appendChild(cardFor(p)));
+
+    grid.textContent = '';
+    if (slice.length) {
+      grid.appendChild(frag);
+      grid.hidden = false; empty.hidden = true;
+    } else {
+      grid.hidden = true; empty.hidden = false;
+      renderEmpty();
+    }
+
+    renderPager(total, pages);
+    FS.revealOnScroll();
+  }
+
+  /* ---------------- utils ---------------- */
+  function debounce(fn, ms) {
+    let t;
+    return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+  }
+
+  /* ---------------- boot ---------------- */
+  FS.products().then(list => {
+    ALL = list;
+    const priced = ALL.filter(p => p.msrp_usd > 0).map(p => p.msrp_usd);
+    PRICE_MIN = priced.length ? Math.min(...priced) : 0;
+    PRICE_MAX = priced.length ? Math.max(...priced) : 0;
+    UNPRICED = ALL.length - priced.length;
+
+    readURL();
+    buildFacets();
+
+    $('q').value = S.q;
+    $('q').addEventListener('input', debounce(e => {
+      S.q = e.target.value.trim();
+      S.page = 1;
+      commit(false);                 // typing replaces, so Back is not flooded
+    }, 200));
+
+    $('sort').addEventListener('change', e => {
+      S.sort = SORTS.includes(e.target.value) ? e.target.value : 'name';
+      S.page = 1;
+      commit();
+    });
+
+    const toggle = $('filterToggle'), rail = $('rail');
+    toggle.addEventListener('click', () => {
+      const open = rail.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.textContent = open ? 'Hide filters' : 'Filters';
+    });
+
+    addEventListener('popstate', () => { readURL(); $('q').value = S.q; render(); });
+
+    render();
+  }).catch(() => {
+    countEl.textContent = 'Catalog data failed to load. Reload the page.';
+  });
+
+  FS.mountChrome('catalog');
+  FS.revealOnScroll();
+})();
+</script>
+</body></html>

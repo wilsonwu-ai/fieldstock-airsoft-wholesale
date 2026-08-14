@@ -1,0 +1,794 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Product · Fieldstock Supply Co.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+/* ---- page-only layout. No token is redefined here. ---- */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.pdp-top{padding-block:1.1rem .4rem}
+.crumbs{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text-mute);display:flex;flex-wrap:wrap;
+  align-items:center;gap:.5rem}
+.crumbs a{color:var(--text-2)}
+.crumbs a:hover{color:var(--orange)}
+.crumbs span[aria-hidden]{color:var(--hairline-lit)}
+
+.pdp-grid{display:grid;grid-template-columns:minmax(0,1.38fr) minmax(0,1fr);
+  gap:clamp(1.6rem,3.4vw,3.4rem);align-items:start;padding-block:1.2rem clamp(48px,6vw,84px)}
+/* minmax(0,1fr), not 1fr: a bare 1fr is minmax(auto,1fr) and the auto floor is
+   the column's min-content width, which the price-break table pushes to ~378px
+   and blows the buy box past a 380px viewport. */
+@media (max-width:980px){.pdp-grid{grid-template-columns:minmax(0,1fr);gap:2rem}}
+
+/* ---- gallery ---- */
+.stage{position:relative;isolation:isolate;aspect-ratio:4/3;
+  border:1px solid var(--hairline);background:var(--surface-1);
+  display:grid;place-items:center;overflow:hidden}
+@media (max-width:520px){.stage{aspect-ratio:1/1}}
+/* tokens only — hardcoding the hexes here duplicates the palette and freezes the
+   stage dark under [data-theme="light"] */
+.stage::before{content:'';position:absolute;inset:0;z-index:0;
+  background:radial-gradient(ellipse at 50% 58%,
+    var(--surface-2) 0%,var(--surface-1) 46%,var(--ground) 100%)}
+.stage img{position:relative;z-index:2;max-height:82%;max-width:88%;width:auto;
+  object-fit:contain;filter:drop-shadow(0 22px 34px rgba(0,0,0,.62))}
+.stage-empty{position:relative;z-index:2;font-family:var(--font-mono);font-size:.7rem;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--text-mute);text-align:center;
+  padding:0 2rem;max-width:34ch}
+.stage-tag{position:absolute;z-index:4;left:0;top:0;padding:.34rem .6rem;
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-mute);background:color-mix(in srgb,var(--ground) 76%,transparent);
+  border-right:1px solid var(--hairline);border-bottom:1px solid var(--hairline)}
+
+.thumbs{display:flex;flex-wrap:wrap;gap:1px;margin-top:1px;
+  background:var(--hairline);border:1px solid var(--hairline)}
+.thumb{flex:0 0 auto;width:96px;aspect-ratio:4/3;background:var(--surface-1);
+  border:0;padding:0;cursor:pointer;display:grid;place-items:center;position:relative;
+  transition:background var(--t-fast)}
+@media (max-width:400px){.thumb{width:72px}}
+.thumb img{max-height:78%;max-width:84%;width:auto;object-fit:contain}
+.thumb:hover{background:var(--surface-2)}
+.thumb[aria-pressed="true"]{background:var(--surface-2)}
+.thumb[aria-pressed="true"]::after{content:'';position:absolute;left:0;right:0;bottom:0;
+  height:2px;background:var(--orange)}
+.thumb-label{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.1em;
+  color:var(--text-mute);text-transform:uppercase}
+
+/* ---- buy box ---- */
+.buybox{position:sticky;top:82px}
+@media (max-width:980px){.buybox{position:static;top:auto}}
+.buy-brand{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.85rem}
+.pdp-h1{font-size:clamp(1.6rem,2.9vw,2.35rem);margin-bottom:.7rem}
+.buy-sku{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;
+  color:var(--text-mute);display:flex;flex-wrap:wrap;gap:1rem;
+  padding-bottom:.9rem;border-bottom:1px solid var(--hairline)}
+.buy-stock{padding-block:.9rem;border-bottom:1px solid var(--hairline)}
+.buy-stock p{margin:.42rem 0 0;font-size:.82rem;color:var(--text-2)}
+
+.pricing{padding-block:1.05rem}
+.msrp-row{display:flex;flex-wrap:wrap;gap:1.8rem}
+.figure{display:flex;flex-direction:column;gap:.1rem}
+.figure .k{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--text-mute)}
+.figure .v{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:1.02rem}
+.figure .v.big{font-size:clamp(1.7rem,3.2vw,2.15rem);line-height:1.1;color:var(--text)}
+
+.gate{margin-top:1.05rem;border:1px solid var(--hairline-lit);background:var(--surface-1);
+  padding:.95rem 1.05rem;display:flex;flex-wrap:wrap;align-items:center;
+  justify-content:space-between;gap:.8rem}
+.gate p{margin:0;font-family:var(--font-mono);font-size:.74rem;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--orange)}
+.gate small{display:block;font-family:var(--font-body);font-size:.76rem;letter-spacing:0;
+  text-transform:none;color:var(--text-mute);margin-top:.25rem}
+
+.net-block{border:1px solid var(--hairline-lit);background:var(--surface-1);
+  padding:1rem 1.1rem;margin-top:.2rem}
+.net-row{display:flex;flex-wrap:wrap;gap:1.9rem;align-items:flex-end}
+.margin-line{margin:.85rem 0 0;padding-top:.75rem;border-top:1px solid var(--hairline);
+  font-size:.82rem;color:var(--text-2)}
+.margin-line b{font-family:var(--font-mono);color:var(--text);font-weight:500}
+
+.pack-line{font-size:.84rem;color:var(--text-2);margin:1rem 0 .2rem}
+.qty-wrap{display:flex;flex-wrap:wrap;gap:.8rem;align-items:flex-end;margin-top:.9rem}
+.qty{display:flex;align-items:stretch;border:1px solid var(--hairline);
+  border-radius:var(--r);background:var(--surface-2);width:max-content}
+.qty button{width:42px;background:transparent;border:0;color:var(--text-2);cursor:pointer;
+  font-size:1.1rem;line-height:1;transition:color var(--t-fast),background var(--t-fast)}
+.qty button:hover:not(:disabled){color:var(--orange);background:var(--surface-1)}
+.qty button:disabled{color:var(--text-mute);cursor:not-allowed}
+.qty input{width:84px;background:transparent;border:0;border-inline:1px solid var(--hairline);
+  text-align:center;font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  padding:.62rem .2rem;-moz-appearance:textfield}
+.qty input::-webkit-outer-spin-button,.qty input::-webkit-inner-spin-button{
+  -webkit-appearance:none;margin:0}
+.qty input:focus-visible{outline:2px solid var(--orange);outline-offset:-2px}
+.buy-actions .btn{width:100%;padding-block:.92rem}
+.buy-actions{margin-top:1rem;display:flex;flex-direction:column;gap:.6rem}
+.btn[disabled]{opacity:.42;cursor:not-allowed;filter:none}
+.ext-line{font-family:var(--font-mono);font-size:.8rem;color:var(--text-2);
+  display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin:.9rem 0 0}
+.ext-line b{color:var(--text);font-weight:500}
+.status{margin:.55rem 0 0;font-size:.8rem;color:var(--stock);min-height:1.2em}
+.overdraw{margin:.55rem 0 0;font-size:.8rem;color:var(--coyote)}
+
+.breaks{margin-top:1.4rem}
+.breaks h2{font-size:.72rem;font-family:var(--font-mono);font-variation-settings:normal;
+  letter-spacing:.16em;color:var(--text-mute);font-weight:500;margin-bottom:.6rem}
+table.data tr.is-active{background:var(--orange-wash)}
+table.data tr.is-active td:first-child{box-shadow:inset 2px 0 0 var(--orange)}
+table.data tr.is-dead td{color:var(--text-mute)}
+/* The tier sub-label must WRAP. Setting it nowrap pushes the table's min-content
+   to ~553px, which is wider than the 486px buy-box rail at 1440 and shoves the
+   "You save" column out of view on desktop — the one column the table exists for.
+   Wrapping keeps min-content at ~378px: fits desktop, scrolls on mobile. */
+.breaks .tier-sub{display:inline-block;max-width:20ch}
+.breaks .table-scroll:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.caption{font-size:.74rem;color:var(--text-mute);margin:.6rem 0 0}
+.nudge{margin-top:.8rem}
+
+/* ---- lower sections ---- */
+.lower{border-top:1px solid var(--hairline)}
+.lower-grid{display:grid;grid-template-columns:minmax(0,1.38fr) minmax(0,1fr);
+  gap:clamp(1.6rem,3.4vw,3.4rem);align-items:start;
+  padding-block:clamp(40px,5vw,68px)}
+@media (max-width:980px){.lower-grid{grid-template-columns:minmax(0,1fr);gap:2.4rem}}
+.sec-head{font-size:.72rem;font-family:var(--font-mono);font-variation-settings:normal;
+  letter-spacing:.16em;color:var(--text-mute);font-weight:500;text-transform:uppercase;
+  margin-bottom:.9rem}
+.desc{color:var(--text-2);font-size:.94rem;max-width:70ch}
+.desc ul{margin:.2rem 0 1em;padding-left:1.05rem}
+.desc li{margin-bottom:.32rem}
+.desc .disclaimer{font-size:.79rem;color:var(--text-mute);border-left:1px solid var(--hairline);
+  padding-left:.9rem}
+
+.bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;
+  background:var(--hairline);border:1px solid var(--hairline)}
+.bento .cell{background:var(--ground);padding:.9rem 1rem;grid-column:span 2;
+  display:flex;flex-direction:column;gap:.3rem;min-width:0}
+.bento .cell.wide{grid-column:span 4}
+@media (max-width:520px){.bento{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bento .cell.wide{grid-column:span 2}}
+.bento .k{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--text-mute)}
+.bento .v{font-size:.92rem;overflow-wrap:anywhere}
+.bento .v.mono{font-size:.86rem}
+.bento .v.unknown{color:var(--text-mute);font-size:.82rem}
+
+.comp{border:1px solid var(--hairline);background:var(--surface-1);padding:1.2rem 1.3rem}
+.comp h2{font-size:1rem;margin-bottom:.7rem}
+.comp dl{margin:0;display:grid;gap:.75rem}
+.comp dt{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-mute)}
+.comp dd{margin:.2rem 0 0;font-size:.86rem;color:var(--text-2)}
+.comp .blocked{color:var(--danger);font-family:var(--font-mono);font-size:.78rem;
+  letter-spacing:.04em}
+.comp .note{margin-top:1rem}
+
+.rel-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;
+  flex-wrap:wrap;margin-bottom:1rem}
+.notfound{padding-block:clamp(60px,10vw,120px);max-width:56ch}
+.notfound p{color:var(--text-2)}
+.notfound .btn{margin-top:.6rem}
+</style>
+</head><body>
+<div id="chrome-header"></div>
+<main>
+  <div class="wrap pdp-top">
+    <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+  </div>
+  <div id="view" class="wrap"><p class="lede" style="padding-block:3rem">Loading product…</p></div>
+  <noscript>
+    <div class="wrap" style="padding-block:3rem">
+      <p class="lede">This product page needs JavaScript to read the catalog file.
+      <a href="catalog.html" style="color:var(--orange)">Browse the catalog</a>.</p>
+    </div>
+  </noscript>
+</main>
+<div id="chrome-footer"></div>
+<script src="assets/js/store.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var ACTIVE_NAV = 'catalog';
+  var view    = document.getElementById('view');
+  var crumbs  = document.getElementById('crumbs');
+
+  /* ---------- helpers ---------- */
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function qs(name) {
+    return new URLSearchParams(location.search).get(name);
+  }
+  function hasPrice(p) { return typeof p.msrp_usd === 'number' && p.msrp_usd > 0; }
+  function money(n) { return FS.usd(n); }
+  function longDate(iso) {
+    if (!iso) return null;
+    var d = new Date(iso + 'T00:00:00');
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+  function snap(n, p) {
+    var inc = p.increment || 1, min = p.minQty || inc;
+    if (!isFinite(n)) n = min;
+    n = Math.max(min, Math.ceil(n / inc) * inc);
+    return n;
+  }
+  /* Where the COMPANY is based, per the positioning note in DESIGN_CONTRACT §
+     "Positioning". This is not a country of manufacture — neither factory
+     publishes one — so the page never restates it as such. */
+  var BRAND_HOME = { 'Raven Evolution': 'Canada', 'Matador Tactical': 'Hong Kong' };
+
+  /* Marking class — deliberately three-state, not a boolean.
+
+     The source feed's own category field is wrong in BOTH directions and cannot
+     carry a federal-compliance claim on its own:
+       · 'Parts & Accessories' holds ~60 complete AEGs (RAV-460 "Raven Elite Type
+         Zero Carbine Gen 2" is filed there, and its own copy calls it a rifle).
+       · 'HPA Systems' mixes complete carbines with bare MechLabs engines.
+     A boolean over that field prints "no federal muzzle marking applies" on a
+     complete rifle. So those two buckets resolve to 'unknown' and the page says
+     it does not know, which is both true and the operationally correct answer —
+     marking is determined per SKU at pick. */
+  function markingClass(p) {
+    var c = p.category, s = p.subcategory || '';
+    if (c === 'Rifles' || c === 'Shotguns' || c === 'Pistols') return 'marked';
+    if (c === 'Magazines' || c === 'Magazines & Shells') return 'none';
+    if (s === 'Accessories' || s === 'Batteries & Charging') return 'none';
+    return 'unknown';
+  }
+
+  /* Specs are read out of the manufacturer's own description text. Nothing is
+     inferred or filled in — a miss prints "Not published by manufacturer". */
+  function specVelocity(p) {
+    var d = p.description || '';
+    var m = d.match(/(\d{3,4})\s*(?:-|–|~|to)\s*(\d{3,4})\s*FPS/i);
+    if (m) return m[1] + '–' + m[2] + ' FPS';
+    m = d.match(/(\d{3,4})\s*FPS/i);
+    return m ? m[1] + ' FPS' : null;
+  }
+  function specBore(p) {
+    var m = (p.description || '').match(/(\d\.\d{2})\s*mm/);
+    return m ? m[1] + ' mm' : null;
+  }
+  function cleanDesc(p) {
+    var d = (p.description || '').trim();
+    if (d.length < 24 || /^quickview$/i.test(d) || /^write a review/i.test(d)) return null;
+    return d;
+  }
+
+  /* ---------- not found ---------- */
+  function renderMissing(id) {
+    document.title = 'Product not found · Fieldstock Supply Co.';
+    crumbs.innerHTML = '<a href="index.html">Home</a><span aria-hidden="true">/</span>'
+      + '<a href="catalog.html">Catalog</a><span aria-hidden="true">/</span>'
+      + '<span>Not found</span>';
+    view.innerHTML =
+      '<div class="notfound">'
+      + '<p class="eyebrow">404 — no such SKU</p>'
+      + '<h1 class="pdp-h1">We do not carry that item</h1>'
+      + '<p>' + (id
+          ? 'Nothing in the current catalog matches <span class="mono">' + esc(id) + '</span>. '
+            + 'Discontinued lines are removed rather than left up as dead pages.'
+          : 'This page needs a product id, for example <span class="mono">product.html?id=raven-470</span>.')
+      + '</p>'
+      + '<p><a class="btn" href="catalog.html">Back to the catalog</a></p>'
+      + '</div>';
+  }
+
+  /* ---------- gallery ---------- */
+  function galleryFrames(p) {
+    var frames = [];
+    if (p.img && p.img.hero) {
+      frames.push({ src: p.img.hero, thumb: p.img.thumb || p.img.card || p.img.hero,
+                    label: 'Cutout' });
+    }
+    (p.gallery || []).forEach(function (g, i) {
+      frames.push({ src: g, thumb: g, label: 'Frame ' + (i + 1) });
+    });
+    return frames;
+  }
+
+  function galleryHTML(p, frames) {
+    if (!frames.length) {
+      return '<div class="stage">'
+        + '<span class="stage-tag">No photography</span>'
+        + '<p class="stage-empty">No photograph on file for this SKU. '
+        + 'We do not render or generate product imagery.</p></div>';
+    }
+    var f0 = frames[0];
+    var thumbs = frames.map(function (f, i) {
+      return '<button type="button" class="thumb" data-i="' + i + '" '
+        + 'aria-pressed="' + (i === 0 ? 'true' : 'false') + '" '
+        + 'aria-label="Show image ' + (i + 1) + ' of ' + frames.length + ' — ' + esc(f.label) + '">'
+        + '<img src="' + esc(f.thumb) + '" alt="" loading="lazy" decoding="async">'
+        + '</button>';
+    }).join('');
+    return '<div class="stage grain">'
+      + '<span class="stage-tag" id="frameTag">' + esc(f0.label) + '</span>'
+      + '<img id="mainImg" src="' + esc(f0.src) + '" decoding="async" '
+      + 'alt="' + esc(p.name) + ' — ' + esc(f0.label.toLowerCase()) + ', image 1 of ' + frames.length + '">'
+      + '</div>'
+      /* A single-frame strip is a focusable button that cannot do anything —
+         wireGallery bails below 2 frames. Don't render a dead control. */
+      + (frames.length > 1
+          ? '<div class="thumbs" role="group" aria-label="Product images" id="thumbs">' + thumbs + '</div>'
+          : '');
+  }
+
+  function wireGallery(p, frames) {
+    if (frames.length < 2) return;
+    var box = document.getElementById('thumbs');
+    var main = document.getElementById('mainImg');
+    var tag = document.getElementById('frameTag');
+    if (!box || !main) return;
+    var btns = Array.prototype.slice.call(box.querySelectorAll('.thumb'));
+
+    function select(i, focus) {
+      i = (i + frames.length) % frames.length;
+      var f = frames[i];
+      main.src = f.src;
+      main.alt = p.name + ' — ' + f.label.toLowerCase() + ', image ' + (i + 1) + ' of ' + frames.length;
+      if (tag) tag.textContent = f.label;
+      btns.forEach(function (b, j) { b.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
+      if (focus) btns[i].focus();
+    }
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('.thumb');
+      if (b) select(parseInt(b.dataset.i, 10), false);
+    });
+    box.addEventListener('keydown', function (e) {
+      var b = e.target.closest('.thumb');
+      if (!b) return;
+      var i = parseInt(b.dataset.i, 10);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); select(i + 1, true); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); select(i - 1, true); }
+      else if (e.key === 'Home') { e.preventDefault(); select(0, true); }
+      else if (e.key === 'End') { e.preventDefault(); select(frames.length - 1, true); }
+    });
+  }
+
+  /* ---------- buy box ---------- */
+  function buyBoxHTML(p, signedIn) {
+    var priced = hasPrice(p);
+    var stockNote = '';
+    if (p.stock === 'back') {
+      stockNote = '<p>On the water. Container lands <span class="mono">' + esc(longDate(p.eta))
+        + '</span>. Backorders ship on arrival, in the order received.</p>';
+    } else if (p.stock === 'out') {
+      stockNote = '<p>Sold out with no landing date booked. Your rep can flag the next '
+        + 'production run for this SKU.</p>';
+    } else {
+      stockNote = '<p><span class="mono">' + p.onHand + '</span> on hand in Quincy, MA. '
+        + 'Orders placed before 2pm ET ship the same business day.</p>';
+    }
+
+    var priceHTML;
+    if (!priced) {
+      priceHTML = '<div class="gate"><div><p>No published list price</p>'
+        + '<small>The manufacturer does not list this SKU. Your rep quotes it on the order.</small>'
+        + '</div>' + (signedIn ? '' : '<a class="btn btn-sm btn-ghost" href="login.html">Dealer sign in</a>')
+        + '</div>';
+    } else if (!signedIn) {
+      priceHTML =
+        '<div class="msrp-row">'
+        + '<div class="figure"><span class="k">MSRP</span><span class="v">' + money(p.msrp_usd) + '</span></div>'
+        + '<div class="figure"><span class="k">MAP floor</span><span class="v">' + money(p.map_usd) + '</span></div>'
+        + '</div>'
+        + '<div class="gate">'
+        + '<div><p>Sign in for your dealer price</p>'
+        + '<small>Dealer net is account-specific. We do not publish it.</small></div>'
+        + '<a class="btn btn-sm" href="login.html">Dealer sign in</a>'
+        + '</div>'
+        + '<p class="caption">Not a dealer yet? <a href="apply.html" style="color:var(--orange)">Apply for an account</a> — most applications reviewed within 5 business days.</p>';
+    } else {
+      priceHTML =
+        '<div class="net-block">'
+        + '<div class="net-row">'
+        + '<div class="figure"><span class="k">Your net / unit</span>'
+        + '<span class="v big" id="netFig">' + money(FS.netPrice(p, p.minQty)) + '</span></div>'
+        + '<div class="figure"><span class="k">MAP floor</span><span class="v">' + money(p.map_usd) + '</span></div>'
+        + '</div>'
+        + '<p class="margin-line" id="marginLine"></p>'
+        + '</div>';
+    }
+
+    var soldOut = p.stock === 'out';
+    return ''
+      + '<div class="buy-brand">'
+      + '<span class="tag">' + esc(p.brand) + '</span>'
+      + '<span class="tag">' + esc(p.line) + '</span>'
+      + (p.subcategory ? '<span class="tag">' + esc(p.subcategory) + '</span>' : '')
+      + '</div>'
+      + '<h1 class="pdp-h1">' + esc(p.name) + '</h1>'
+      + '<div class="buy-sku"><span>SKU <span class="mono" style="color:var(--text-2)">'
+      + esc(p.sku) + '</span></span><span>ID <span class="mono" style="color:var(--text-2)">'
+      + esc(p.id) + '</span></span></div>'
+      + '<div class="buy-stock">' + FS.stockPill(p) + stockNote + '</div>'
+      + '<div class="pricing">' + priceHTML + '</div>'
+      + '<p class="pack-line">Case of ' + p.casePack + '. Sold in multiples of ' + p.increment
+      + '. Minimum order ' + p.minQty + ' units.</p>'
+      + '<div class="qty-wrap">'
+      + '<div class="field"><label for="qty">Quantity</label>'
+      + '<div class="qty">'
+      + '<button type="button" id="qtyDown" aria-label="Decrease quantity by ' + p.increment + '"'
+      + (soldOut ? ' disabled' : '') + '>&minus;</button>'
+      + '<input id="qty" class="mono" type="number" inputmode="numeric" value="' + p.minQty
+      + '" min="' + p.minQty + '" step="' + p.increment + '" aria-describedby="qtyRule"'
+      + (soldOut ? ' disabled' : '') + '>'
+      + '<button type="button" id="qtyUp" aria-label="Increase quantity by ' + p.increment + '"'
+      + (soldOut ? ' disabled' : '') + '>+</button>'
+      + '</div></div>'
+      + '</div>'
+      + '<p class="sr-only" id="qtyRule">Quantity snaps to multiples of ' + p.increment
+      + ', minimum ' + p.minQty + '.</p>'
+      + '<div class="ext-line" id="liveTotals" aria-live="polite"></div>'
+      + '<p class="overdraw" id="overdraw" role="status" aria-live="polite" hidden></p>'
+      + '<div class="buy-actions">'
+      + '<button class="btn" id="addBtn"' + (soldOut ? ' disabled' : '') + '>'
+      + (soldOut ? 'Sold out' : 'Add to order') + '</button>'
+      + '</div>'
+      + '<p class="status" id="addStatus" role="status" aria-live="polite"></p>'
+      + '<section class="breaks" aria-labelledby="breaksH">'
+      + '<h2 id="breaksH">Price breaks</h2>'
+      /* a scroll container must be keyboard-reachable — WCAG 2.1.1 */
+      + '<div class="table-scroll" tabindex="0" role="region" aria-label="Price break table, scrolls sideways">'
+      + '<table class="data"><thead><tr>'
+      + '<th scope="col">Qty range</th><th scope="col" class="n">Unit</th>'
+      + '<th scope="col" class="n">Extended</th><th scope="col" class="n">You save</th>'
+      + '</tr></thead><tbody id="breakRows"></tbody></table></div>'
+      + '<p class="caption">Extended and savings are shown at each tier’s entry quantity, '
+      + 'rounded up to a full case. Savings are measured against the Tier 3 unit price. '
+      + 'A band a full case cannot land inside is shown greyed and unpriced — it is not '
+      + 'orderable on this SKU.'
+      + (signedIn ? '' : ' Prices unlock when you sign in.') + '</p>'
+      + '<div class="note nudge" id="nudge" aria-live="polite" hidden></div>'
+      + '</section>';
+  }
+
+  function breakRowsHTML(p, signedIn, qty) {
+    var priced = hasPrice(p);
+    var tiers = p.tiers_usd || [];
+    var base = tiers.length ? tiers[0].unit_usd : 0;
+    return tiers.map(function (t, i) {
+      var next = tiers[i + 1];
+      var bandMax = next ? next.min_qty - 1 : Infinity;
+      var range = next ? (t.min_qty + '–' + bandMax) : (t.min_qty + '+');
+      var rq = snap(t.min_qty, p);
+      /* One case can overshoot a whole band (case of 12 against a 1–9 band), in
+         which case this tier is unbuyable on this SKU. Pricing it at 12 units
+         would quote a unit price the dealer can never actually pay. */
+      var reach = rq <= bandMax;
+      var active = qty >= t.min_qty && (!next || qty < next.min_qty);
+      var unit = '—', ext = '—', save = '—';
+      if (signedIn && priced && reach) {
+        unit = money(t.unit_usd);
+        ext = money(t.unit_usd * rq);
+        save = i === 0 ? '—' : money((base - t.unit_usd) * rq);
+      }
+      var sub = reach
+        ? esc(t.name) + ' · at ' + rq + ' units'
+        : esc(t.name) + ' · not reachable — one case is ' + p.casePack + ' units';
+      var cls = (active ? 'is-active ' : '') + (reach ? '' : 'is-dead');
+      return '<tr' + (cls.trim() ? ' class="' + cls.trim() + '"' : '') + '>'
+        + '<td>' + range + (active ? '<span class="sr-only"> — your current band</span>' : '')
+        + (reach ? '' : '<span class="sr-only"> — below the case minimum, not orderable</span>')
+        + '<br><span class="mono tier-sub" style="font-size:.68rem;color:var(--text-mute)">'
+        + sub + '</span></td>'
+        + '<td class="n">' + unit + '</td><td class="n">' + ext + '</td><td class="n">' + save + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  /* ---------- spec bento ---------- */
+  var UNKNOWN = '<span class="v unknown">Not published by manufacturer</span>';
+  function cell(k, v, wide, mono) {
+    return '<div class="cell' + (wide ? ' wide' : '') + '"><span class="k">' + k + '</span>'
+      + (v ? '<span class="v' + (mono ? ' mono' : '') + '">' + v + '</span>' : UNKNOWN) + '</div>';
+  }
+  function bentoHTML(p) {
+    var home = BRAND_HOME[p.brand] || null;
+    var mk = markingClass(p);
+    var marking = mk === 'marked' ? 'Tier 1 — federal blaze-orange muzzle marking'
+                : mk === 'none'   ? 'Not a marked device'
+                : 'Not determinable from the manufacturer’s categorisation — set per SKU at pick';
+    return '<div class="bento">'
+      + cell('Manufacturer', esc(p.brand))
+      + cell('Product line', esc(p.line))
+      + cell('Category', esc(p.category))
+      + cell('Type / platform', esc(p.subcategory))
+      + cell('Manufacturer SKU', esc(p.sku), false, true)
+      + cell('Brand home market', home ? esc(home) : null)
+      + cell('Muzzle velocity', specVelocity(p), false, true)
+      + cell('Inner barrel bore', specBore(p), false, true)
+      + cell('Case pack', p.casePack + ' units', false, true)
+      + cell('Order increment', p.increment + ' units (min ' + p.minQty + ')', false, true)
+      + cell('MSRP, US list', hasPrice(p) ? money(p.msrp_usd) : null, false, true)
+      + cell('MAP floor', hasPrice(p) ? money(p.map_usd) : null, false, true)
+      + cell('US marking tier', esc(marking), true)
+      + '</div>'
+      + '<p class="caption">Velocity and bore are read from the manufacturer’s own product copy. '
+      + 'Blank fields mean the factory does not publish that figure — we do not fill them in. '
+      + 'Brand home market is where the company is based; neither factory publishes a country '
+      + 'of manufacture, so this page does not state one.</p>';
+  }
+
+  /* ---------- description ---------- */
+  function descHTML(p) {
+    var d = cleanDesc(p);
+    if (!d) {
+      return '<p class="desc">The manufacturer publishes no description for this SKU. '
+        + 'Specification questions route to your rep, who has the factory sheet.</p>';
+    }
+    var disclaimer = null;
+    var star = d.indexOf('* Modification Disclaimer');
+    if (star > -1) { disclaimer = d.slice(star + 1).trim(); d = d.slice(0, star).trim(); }
+
+    var parts = d.split(/\s+-\s+/);
+    var html;
+    if (parts.length >= 4) {
+      html = '<p>' + esc(parts[0]) + '</p><ul>'
+        + parts.slice(1).map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('')
+        + '</ul>';
+    } else {
+      html = '<p>' + esc(d) + '</p>';
+    }
+    if (disclaimer) html += '<p class="disclaimer">' + esc(disclaimer) + '</p>';
+    return '<div class="desc">' + html + '</div>';
+  }
+
+  /* ---------- compliance ---------- */
+  function complianceHTML(p, frameCount) {
+    var mk = markingClass(p);
+
+    var markDd;
+    if (mk === 'marked') {
+      markDd = 'Tier 1. Marked to <span class="mono">16 CFR Part 1272</span> (CPSC) with a blaze-orange '
+        + 'muzzle marking in <span class="mono">SAE AMS STD 595A-17 12199</span>, applied here before '
+        + 'the unit ships. California orders add a fluorescent trigger guard and two 2 cm non-removable '
+        + 'fluorescent bands (Penal Code 16700(b)(4), AB 1798). New York orders are built to the state’s '
+        + 'stricter regime, which is actively enforced against sellers shipping in.';
+    } else if (mk === 'none') {
+      markDd = 'None. This SKU is a magazine, battery or accessory, not a complete imitation firearm, so '
+        + 'no federal muzzle marking applies to it. Complete devices on the same order are marked normally.';
+    } else {
+      markDd = 'Not stated here. The manufacturer files this SKU under '
+        + '<span class="mono">' + esc(p.category) + '</span>, and that bucket in the factory’s own feed '
+        + 'holds both complete AEGs and bare internals. We will not infer a federal marking obligation '
+        + 'from a category we know to be mixed, in either direction. The marking determination is made '
+        + 'against the physical unit at pick, and your rep will confirm it in writing before the order '
+        + 'is released.';
+    }
+
+    var shipDd = '<span class="blocked">New Jersey — statewide</span><br>'
+      + '<span class="blocked">New York City · Chicago · Philadelphia — municipal</span><br>'
+      + 'Blocked at cart by ZIP, not by state. Chicago Municipal Code 4-144-190 is the clearest of the '
+      + 'municipal bans; a state-level rule alone would miss a Manhattan or Chicago ZIP. '
+      + (mk === 'none'
+          ? 'These bans reach complete imitation firearms. This SKU is not one, but the cart applies the '
+            + 'ZIP block to the whole order, so a mixed cart to a blocked ZIP still stops.'
+          : 'The block is applied to the order, not to the line.');
+
+    /* The photography paragraph must describe the photographs that are actually
+       on the page. With no frames there is nothing to describe, and "unretouched"
+       was false in every case — the hero is a background-removed cutout. */
+    var photoDd;
+    if (!frameCount) {
+      photoDd = 'There is no photograph on file for this SKU, so nothing on this page shows the unit. '
+        + 'We do not render, generate or borrow a stand-in image. Your rep can pull the factory sheet.';
+    } else {
+      photoDd = 'These are the manufacturer’s own Canadian-market photographs of this exact SKU. The only '
+        + 'processing applied is background removal and rescaling — no pixel of the product itself is '
+        + 'generated, retouched or substituted. Because they are Canadian-market shots, the units shown '
+        + 'carry <b>no blaze-orange muzzle marking</b>.'
+        + (mk === 'marked'
+            ? ' Every unit we ship into the US is marked to <span class="mono">16 CFR 1272</span> before '
+              + 'it leaves the warehouse. The gun in the photo is the gun you get; the muzzle will not '
+              + 'look like this.'
+            : ' Anything we ship into the US that requires marking is marked to '
+              + '<span class="mono">16 CFR 1272</span> first.');
+    }
+
+    return '<div class="comp">'
+      + '<h2 id="compH">Compliance on this SKU</h2>'
+      + '<dl>'
+      + '<dt>US marking tier</dt><dd>' + markDd + '</dd>'
+      + '<dt>Do not ship</dt><dd>' + shipDd + '</dd>'
+      + '<dt>About the photography on this page</dt><dd>' + photoDd + '</dd>'
+      + '</dl>'
+      + '<p class="note">This is a scoping summary, not legal advice. Confirm your own obligations with '
+      + 'counsel before you commit capital or inventory.</p>'
+      + '</div>';
+  }
+
+  /* ---------- related ---------- */
+  function relatedHTML(p, all, signedIn) {
+    var rel = all.filter(function (x) { return x.line === p.line && x.id !== p.id; }).slice(0, 4);
+    if (!rel.length) return '';
+    var cards = rel.map(function (x) {
+      var media = (x.img && x.img.card)
+        ? '<img src="' + esc(x.img.card) + '" alt="' + esc(x.name) + '" loading="lazy" decoding="async">'
+        : '<span class="thumb-label">No photo on file</span>';
+      var slot;
+      if (signedIn) {
+        var net = FS.netPrice(x, x.minQty);
+        slot = hasPrice(x)
+          ? '<span class="price">' + money(net) + '<small>Your net at ' + x.minQty + '</small></span>'
+          : '<span class="price-gate">Quoted by rep</span>';
+      } else {
+        slot = '<span class="price-gate">Sign in for price</span>';
+      }
+      return '<article class="card">'
+        + '<div class="card-media">' + media + '</div>'
+        + '<div class="card-sku"><span>' + esc(x.sku) + '</span><span>' + esc(x.subcategory) + '</span></div>'
+        + '<h3 class="card-name"><a href="product.html?id=' + encodeURIComponent(x.id) + '">'
+        + esc(x.name) + '</a></h3>'
+        + '<div class="card-foot">' + slot + FS.stockPill(x) + '</div>'
+        + '</article>';
+    }).join('');
+    return '<section class="section" style="padding-block:clamp(40px,5vw,68px);border-top:1px solid var(--hairline)">'
+      + '<div class="rel-head"><h2 style="font-size:clamp(1.3rem,2.2vw,1.8rem)">Related in '
+      + esc(p.line) + '</h2>'
+      + '<a href="catalog.html?line=' + encodeURIComponent(p.line) + '" class="btn btn-sm btn-ghost">'
+      + 'All ' + esc(p.line) + '</a></div>'
+      + '<div class="grid-products">' + cards + '</div>'
+      + '</section>';
+  }
+
+  /* ---------- live buy-box state ---------- */
+  function wireBuyBox(p, signedIn) {
+    var input = document.getElementById('qty');
+    var down = document.getElementById('qtyDown');
+    var up = document.getElementById('qtyUp');
+    var rows = document.getElementById('breakRows');
+    var totals = document.getElementById('liveTotals');
+    var nudge = document.getElementById('nudge');
+    var netFig = document.getElementById('netFig');
+    var marginLine = document.getElementById('marginLine');
+    var overdraw = document.getElementById('overdraw');
+    var addBtn = document.getElementById('addBtn');
+    var status = document.getElementById('addStatus');
+    if (!input) return;
+
+    var priced = hasPrice(p);
+
+    function qty() { return snap(parseInt(input.value, 10), p); }
+
+    function paint() {
+      var q = qty();
+      if (String(q) !== input.value) input.value = q;
+      if (down) down.disabled = (p.stock === 'out') || q <= p.minQty;
+
+      rows.innerHTML = breakRowsHTML(p, signedIn, q);
+
+      var net = signedIn && priced ? FS.netPrice(p, q) : null;
+      if (netFig) netFig.textContent = money(net);
+      if (marginLine) {
+        if (net != null && p.map_usd > 0) {
+          var m = Math.round((p.map_usd - net) / p.map_usd * 100);
+          marginLine.innerHTML = 'Your margin at MAP: <b>' + m + '%</b> · band: <b>'
+            + esc(FS.tierFor(p, q).name) + '</b>';
+        } else {
+          marginLine.textContent = 'Margin shows once a net price is quoted for this SKU.';
+        }
+      }
+
+      var line = '<span>' + q + ' units × ' + (net != null ? money(net) : '—') + '</span>';
+      line += '<span>Extended <b>' + (net != null ? money(net * q) : '—') + '</b></span>';
+      totals.innerHTML = line;
+
+      if (overdraw) {
+        if (p.stock === 'in' && q > p.onHand) {
+          overdraw.hidden = false;
+          overdraw.textContent = 'Only ' + p.onHand + ' on hand. The balance of '
+            + (q - p.onHand) + ' backorders against the next container.';
+        } else { overdraw.hidden = true; overdraw.textContent = ''; }
+      }
+
+      /* Never upsell a tier on a SKU that cannot be ordered at all. */
+      var nb = p.stock === 'out' ? null : FS.nextBreak(p, q);
+      if (!nb) {
+        nudge.hidden = true; nudge.textContent = '';
+      } else {
+        var target = snap(nb.min_qty, p);
+        var delta = target - q;
+        var close = delta <= Math.max(2 * p.increment, 8);
+        var save = (net != null && priced) ? (net - nb.unit_usd) * target : null;
+        if (close && delta > 0) {
+          nudge.hidden = false;
+          nudge.innerHTML = 'Add <b>' + delta + '</b> more to reach the ' + nb.min_qty
+            + '-unit tier'
+            + (save != null && save > 0 ? ' — saves <b>' + money(save) + '</b> on the order.'
+                                        : '. Sign in to see what it saves.');
+        } else if (delta > 0) {
+          nudge.hidden = false;
+          nudge.innerHTML = 'Next price break at <b>' + nb.min_qty + '</b> units ('
+            + esc(nb.name) + ').';
+        } else { nudge.hidden = true; }
+      }
+    }
+
+    function bump(dir) {
+      input.value = snap(qty() + dir * p.increment, p);
+      paint();
+    }
+    if (up) up.addEventListener('click', function () { bump(1); });
+    if (down) down.addEventListener('click', function () { bump(-1); });
+    input.addEventListener('change', paint);
+    input.addEventListener('blur', paint);
+
+    if (addBtn && p.stock !== 'out') {
+      addBtn.addEventListener('click', function () {
+        var q = qty();
+        FS.addToCart(p.id, q);
+        status.textContent = q + ' units added to your order. Cart updated.';
+        updateCartLink();
+      });
+    }
+    paint();
+  }
+
+  function updateCartLink() {
+    var link = document.querySelector('.nav a.btn');
+    if (!link || !FS.user()) return;
+    var n = FS.cartCount();
+    link.textContent = 'Cart' + (n ? ' (' + n + ')' : '');
+  }
+
+  /* ---------- render ---------- */
+  function render(p, all) {
+    var signedIn = !!FS.user();
+    document.title = p.name + ' · Fieldstock Supply Co.';
+
+    crumbs.innerHTML = '<a href="index.html">Home</a><span aria-hidden="true">/</span>'
+      + '<a href="catalog.html">Catalog</a><span aria-hidden="true">/</span>'
+      + '<a href="catalog.html?category=' + encodeURIComponent(p.category) + '">'
+      + esc(p.category) + '</a><span aria-hidden="true">/</span>'
+      + '<span class="mono" style="color:var(--text-2)">' + esc(p.sku) + '</span>';
+
+    var frames = galleryFrames(p);
+
+    view.innerHTML =
+      '<div class="pdp-grid">'
+      + '<div class="pdp-gallery">' + galleryHTML(p, frames) + '</div>'
+      + '<div class="buybox">' + buyBoxHTML(p, signedIn) + '</div>'
+      + '</div>'
+      + '<div class="lower"><div class="lower-grid">'
+      + '<section aria-labelledby="descH"><h2 class="sec-head" id="descH">From the manufacturer</h2>'
+      + descHTML(p)
+      + '<h2 class="sec-head" id="specH" style="margin-top:2.2rem">Specification</h2>'
+      + '<div class="reveal" role="group" aria-labelledby="specH">' + bentoHTML(p) + '</div>'
+      + '</section>'
+      + '<section aria-labelledby="compH">' + complianceHTML(p, frames.length) + '</section>'
+      + '</div></div>'
+      + relatedHTML(p, all, signedIn);
+
+    wireGallery(p, frames);
+    wireBuyBox(p, signedIn);
+  }
+
+  /* ---------- boot ---------- */
+  FS.products().then(function (all) {
+    var id = qs('id');
+    var p = id ? all.find(function (x) { return x.id === id || x.slug === id; }) : null;
+    if (!p) renderMissing(id); else render(p, all);
+  }).catch(function () {
+    view.innerHTML = '<div class="notfound"><h1 class="pdp-h1">Catalog unavailable</h1>'
+      + '<p>The product file did not load. Reload, or '
+      + '<a href="catalog.html" style="color:var(--orange)">go back to the catalog</a>.</p></div>';
+  }).then(function () {
+    FS.mountChrome(ACTIVE_NAV);
+    updateCartLink();
+    FS.revealOnScroll();
+  });
+})();
+</script>
+</body></html>

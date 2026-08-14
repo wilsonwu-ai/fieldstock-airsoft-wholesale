@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fieldstock Supply Co. · Dealer-direct airsoft distribution</title>
+<meta name="description" content="US wholesale distribution for Raven Evolution and Matador Tactical. US warehoused, US marked, sold only to approved retailers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative; overflow: hidden;
+    min-height: clamp(600px, 92vh, 940px);
+    display: grid; align-items: center;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .hero-stage {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(46% 40% at 62% 52%, rgba(255,106,0,.15) 0%, transparent 64%),
+      radial-gradient(90% 78% at 50% 40%, #191d1b 0%, var(--ground) 72%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 1; opacity: .28;
+    background-image:
+      linear-gradient(to right, var(--hairline) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--hairline) 1px, transparent 1px);
+    background-size: 88px 88px;
+    mask-image: radial-gradient(70% 60% at 50% 45%, #000 0%, transparent 78%);
+  }
+  .hero .wrap { position: relative; z-index: 4; width: 100%; padding-block: 3rem; }
+  .hero-copy { max-width: min(56ch, 60%); }
+  .hero h1 {
+    font-size: clamp(2.5rem, 5.6vw, 5rem);
+    font-variation-settings: 'wdth' 72, 'wght' 800;
+    max-width: 13ch;
+  }
+  .hero h1 .thin {
+    display: block; font-variation-settings: 'wdth' 72, 'wght' 200;
+    color: var(--text-2); max-width: 15ch;
+  }
+  .hero-cta { display: flex; gap: 1.4rem; align-items: center; margin-top: 2.2rem; flex-wrap: wrap; }
+  .textlink {
+    font-family: var(--font-mono); font-size: .74rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--text-2);
+    border-bottom: 1px solid var(--hairline-lit); padding-bottom: 3px;
+    transition: color var(--t), border-color var(--t);
+  }
+  .textlink:hover { color: var(--orange); border-color: var(--orange); }
+
+  .hero-rifle {
+    position: absolute; z-index: 2; right: -6%; top: 50%;
+    width: min(78vw, 1180px); translate: 0 -46%;
+    will-change: transform; pointer-events: none;
+    filter: drop-shadow(0 40px 60px rgba(0,0,0,.72));
+  }
+  .hero-rifle img { width: 100%; height: auto; }
+  @media (max-width: 1080px) {
+    .hero { min-height: auto; padding-block: clamp(50px, 9vw, 90px) 0; }
+    .hero .wrap { padding-block: 1rem; }
+    .hero-rifle { position: relative; right: auto; top: auto; translate: 0;
+                  width: 112%; margin: 2.4rem 0 -1rem -6%; }
+    .hero-copy { max-width: none; }
+    .hero h1, .hero h1 .thin { max-width: none; }
+    .scroll-cue { display: none; }
+  }
+
+  .scroll-cue {
+    position: absolute; left: var(--gutter); bottom: 26px; z-index: 4;
+    font-family: var(--font-mono); font-size: .6rem; letter-spacing: .2em;
+    color: var(--text-mute); text-transform: uppercase;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .scroll-cue::after {
+    content: ''; width: 46px; height: 1px; background: var(--hairline-lit);
+    animation: cue 2.4s ease-in-out infinite;
+  }
+  @keyframes cue { 0%,100%{transform:scaleX(.4);transform-origin:left} 50%{transform:scaleX(1);transform-origin:left} }
+  @media (prefers-reduced-motion: reduce) { .scroll-cue::after { animation: none; } }
+
+  /* ---------- proof strip ---------- */
+  .proof {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-block: 1px solid var(--hairline); background: var(--surface-1);
+  }
+  .proof div { padding: 1.9rem var(--gutter); }
+  .proof div + div { border-left: 1px solid var(--hairline); }
+  .proof b {
+    display: block; font-family: var(--font-display);
+    font-variation-settings: 'wdth' 76,'wght' 700; font-size: clamp(1.7rem,3vw,2.5rem);
+    line-height: 1; margin-bottom: .4rem;
+  }
+  .proof span { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .13em;
+                text-transform: uppercase; color: var(--text-mute); }
+  @media (max-width: 860px) {
+    .proof { grid-template-columns: 1fr 1fr; }
+    .proof div { padding: 1.3rem 1.2rem; }
+    .proof div:nth-child(3) { border-left: 0; }
+    .proof div:nth-child(n+3) { border-top: 1px solid var(--hairline); }
+  }
+
+  /* ---------- brand panels ---------- */
+  .brandrow {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--hairline); border-block: 1px solid var(--hairline);
+  }
+  .brandcard {
+    background: var(--ground); padding: clamp(2rem,3.6vw,3.4rem);
+    position: relative; overflow: hidden; isolation: isolate;
+  }
+  .brandcard::before {
+    content:''; position:absolute; inset:0; z-index:-1;
+    background: radial-gradient(70% 60% at 78% 30%, rgba(255,106,0,.09), transparent 70%);
+    opacity:0; transition: opacity var(--t);
+  }
+  .brandcard:hover::before { opacity: 1; }
+  .brandcard .shot { height: 190px; display: grid; place-items: center; margin: 1.4rem 0; }
+  .brandcard .shot img { max-height: 100%; width: auto;
+    filter: drop-shadow(0 16px 26px rgba(0,0,0,.6)); transition: transform var(--t); }
+  .brandcard:hover .shot img { transform: scale(1.05) rotate(-.5deg); }
+  .brandmeta { display: flex; gap: 1.6rem; flex-wrap: wrap; margin: 1rem 0 1.4rem; }
+  .brandmeta div span { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .13em;
+                        color: var(--text-mute); text-transform: uppercase; display: block; }
+  .brandmeta div b { font-family: var(--font-mono); font-size: 1rem; font-variant-numeric: tabular-nums; }
+  @media (max-width: 880px) { .brandrow { grid-template-columns: 1fr; } }
+
+  /* ---------- beats ---------- */
+  .beat {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: clamp(1.6rem,5vw,5rem); align-items: center;
+    padding-block: clamp(2.4rem,5vw,4.4rem);
+  }
+  .beat + .beat { border-top: 1px solid var(--hairline); }
+  .beat:nth-child(even) .beat-media { order: -1; }
+  .beat-media {
+    background: var(--surface-1); border: 1px solid var(--hairline);
+    aspect-ratio: 4/3; display: grid; place-items: center; padding: 1.6rem;
+    position: relative; overflow: hidden;
+  }
+  .beat-media::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(60% 60% at 50% 55%, rgba(255,106,0,.10), transparent 68%);
+  }
+  .beat-media img { max-height: 100%; width: auto; position: relative;
+                    filter: drop-shadow(0 14px 24px rgba(0,0,0,.55)); }
+  .beat-n {
+    font-family: var(--font-mono); font-size: .64rem; letter-spacing: .2em;
+    color: var(--orange); margin-bottom: .8rem;
+  }
+  @media (max-width: 860px) {
+    .beat { grid-template-columns: 1fr; }
+    .beat:nth-child(even) .beat-media { order: 0; }
+  }
+
+  /* ---------- gets ---------- */
+  .gets { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--hairline);
+          border: 1px solid var(--hairline); }
+  .gets > div { background: var(--ground); padding: 1.8rem 1.6rem; }
+  .gets h3 { font-size: 1.05rem; margin-bottom: .7rem; }
+  .gets p { font-size: .88rem; color: var(--text-2); margin: 0; }
+  .mockrow {
+    font-family: var(--font-mono); font-size: .72rem; background: var(--surface-2);
+    border: 1px solid var(--hairline); padding: .6rem .75rem; margin-bottom: 1rem;
+    display: flex; justify-content: space-between; gap: .8rem; align-items: center;
+  }
+  @media (max-width: 860px) { .gets { grid-template-columns: 1fr; } }
+
+  /* ---------- log ---------- */
+  .log { display: grid; gap: 1px; background: var(--hairline);
+         border: 1px solid var(--hairline); grid-template-columns: repeat(3,1fr); }
+  .log article { background: var(--ground); padding: 1.5rem 1.4rem; }
+  .log time { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .14em;
+              color: var(--orange); display: block; margin-bottom: .6rem; }
+  .log h4 { font-family: var(--font-display); font-variation-settings:'wdth' 82,'wght' 600;
+            text-transform: uppercase; font-size: .95rem; margin: 0 0 .5rem; }
+  .log p { font-size: .84rem; color: var(--text-2); margin: 0; }
+  @media (max-width: 860px) { .log { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div id="chrome-header"></div>
+
+<main>
+  <!-- HERO -->
+  <section class="hero grain">
+    <div class="hero-stage"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-rifle" id="heroRifle"></div>
+    <div class="wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">Wholesale · United States</p>
+        <h1>Two brands<span class="thin">no US dealer can get</span></h1>
+        <p class="lede" style="margin-top:1.4rem;max-width:44ch">
+          Raven Evolution and Matador Tactical have never had a US shelf presence.
+          We import them, mark them for the state they ship to, and sell them
+          only to approved retailers.
+        </p>
+        <div class="hero-cta">
+          <a class="btn" href="apply.html">Apply for dealer pricing</a>
+          <a class="textlink" href="catalog.html">Browse the catalog</a>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-cue">Scroll</div>
+  </section>
+
+  <!-- PROOF -->
+  <section class="proof" aria-label="Company facts">
+    <div><b class="num" id="skuCount">—</b><span>SKUs stocked</span></div>
+    <div><b class="num">2</b><span>Exclusive brands</span></div>
+    <div><b>Quincy, MA</b><span>Warehouse</span></div>
+    <div><b>16 CFR 1272</b><span>GCC on file, every SKU</span></div>
+  </section>
+
+  <!-- BRANDS -->
+  <section id="brands">
+    <div class="brandrow" id="brandRow"></div>
+  </section>
+
+  <!-- BEATS -->
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow reveal">Inside the platform</p>
+      <h2 class="reveal" style="max-width:16ch">What your customer is actually buying</h2>
+      <p class="lede reveal" style="margin-top:1rem">
+        Four components decide whether a rifle gets returned. Your counter staff should
+        be able to name all four.
+      </p>
+      <div id="beats" style="margin-top:2.4rem"></div>
+    </div>
+  </section>
+
+  <!-- WHAT A DEALER GETS -->
+  <section class="section" style="background:var(--surface-1);border-block:1px solid var(--hairline)">
+    <div class="wrap">
+      <p class="eyebrow reveal">The account</p>
+      <h2 class="reveal" style="max-width:18ch">What a dealer account actually gets you</h2>
+      <div class="gets reveal" style="margin-top:2.2rem">
+        <div>
+          <div class="mockrow"><span>RAV-ORE-CAOS-CAR</span><span style="color:var(--orange)">$212.42</span></div>
+          <h3>Your price, before you submit</h3>
+          <p>Net cost, extended line total and order total visible at every step. Not an
+             MSRP that gets repriced by email after you order — the category norm we exist
+             to replace.</p>
+        </div>
+        <div>
+          <div class="mockrow"><span>On the water</span><span class="pill back">Due 2026-09-22</span></div>
+          <h3>Dated, honest inventory</h3>
+          <p>On-hand band, next inbound date and estimated ship date on the tile, the
+             product page and in the cart. When a line is out, it says so.</p>
+        </div>
+        <div>
+          <div class="mockrow"><span>asset-pack.zip</span><span style="color:var(--text-mute)">14 files</span></div>
+          <h3>A listing kit per SKU</h3>
+          <p>Cleared-background PNG, spec sheet, exploded diagram, normalised FPS and joule
+             data, MAP sheet and a copy-ready description block. Live on your own store in
+             under ten minutes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPLIANCE -->
+  <section class="section">
+    <div class="wrap">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.6rem,5vw,4rem);align-items:start"
+           class="comp-grid">
+        <div>
+          <p class="eyebrow reveal">Compliance</p>
+          <h2 class="reveal" style="max-width:15ch">Marked for the state it ships to</h2>
+          <p class="lede reveal" style="margin-top:1rem">
+            The federal muzzle-marking rule is only the floor. California and New York
+            each add their own, and four jurisdictions we will not ship to at all.
+            This is the overhead that keeps grey-market importers out of your category.
+          </p>
+          <p class="reveal" style="margin-top:1.4rem">
+            <a class="btn btn-ghost" href="compliance.html">Read the four marking tiers</a>
+          </p>
+        </div>
+        <div class="reveal">
+          <div class="table-scroll">
+            <table class="data">
+              <thead><tr><th>Tier</th><th>Where</th><th>What we apply</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">1</td><td>~40 states</td><td>Blaze-orange muzzle marking, 16 CFR 1272</td></tr>
+                <tr><td class="mono">2</td><td>California</td><td>+ fluorescent trigger guard + two 2cm bands</td></tr>
+                <tr><td class="mono">3</td><td>New York State</td><td>Strictest marking regime, actively enforced</td></tr>
+                <tr><td class="mono" style="color:var(--danger)">4</td>
+                    <td>NJ · NYC · Chicago · Philadelphia</td>
+                    <td style="color:var(--danger)">Do not ship. Blocked by ZIP.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mono" style="font-size:.6rem;color:var(--text-mute);margin-top:.9rem;line-height:1.6">
+            Scoping summary compiled from primary sources, last reviewed 2026-08-13.
+            Not legal advice — confirm with counsel before committing capital.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSPECTOR TEASE -->
+  <section class="section" style="border-top:1px solid var(--hairline);background:var(--surface-1)">
+    <div class="wrap" style="text-align:center">
+      <p class="eyebrow reveal" style="justify-content:center">Interactive</p>
+      <h2 class="reveal" style="max-width:20ch;margin-inline:auto">Take the platform apart</h2>
+      <p class="lede reveal" style="margin:1rem auto 2rem;text-align:center">
+        Orbit it, explode it, click any component to see what that part costs you.
+        Every piece on the model is a SKU on the shelf.
+      </p>
+      <a class="btn reveal" href="inspector.html">Open the inspector</a>
+    </div>
+  </section>
+
+  <!-- FIELD LOG -->
+  <section class="section">
+    <div class="wrap">
+      <p class="eyebrow reveal">Field log</p>
+      <h2 class="reveal" style="margin-bottom:2rem">Dated, or it didn't happen</h2>
+      <div class="log reveal">
+        <article>
+          <time datetime="2026-08-13">2026-08-13</time>
+          <h4>Catalog import complete</h4>
+          <p>273 SKUs across both brands loaded with manufacturer photography, MSRP and
+             line assignments. Marking tiers assigned per SKU.</p>
+        </article>
+        <article>
+          <time datetime="2026-08-11">2026-08-11</time>
+          <h4>Marking spec locked</h4>
+          <p>Tier 1 through 4 specification issued to both factories, referencing
+             16 CFR 1272 and SAE AMS STD 595A-17 colour 12199.</p>
+        </article>
+        <article>
+          <time datetime="2026-08-04">2026-08-04</time>
+          <h4>Distribution talks opened</h4>
+          <p>First conversation with the manufacturer covering both brands, six lines,
+             and direct-to-US container shipping.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="chrome-footer"></div>
+
+<script src="assets/js/store.js"></script>
+<script>
+FS.mountChrome('');
+
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+FS.products().then(all => {
+  document.getElementById('skuCount').textContent = all.length;
+
+  /* hero: the most expensive in-stock rifle with a usable cutout */
+  const rifles = all.filter(p => p.category === 'Rifles' && p.img && p.img.hero);
+  const hero = rifles.sort((a,b) => b.msrp_usd - a.msrp_usd)[0]
+            || all.find(p => p.img && p.img.hero);
+  if (hero) {
+    document.getElementById('heroRifle').innerHTML =
+      `<img src="${hero.img.hero}" alt="${hero.name}" fetchpriority="high" decoding="async">`;
+  }
+
+  /* brand panels */
+  const brands = [
+    { name:'Raven Evolution', origin:'Designed and engineered in Canada',
+      line:'AEG platforms — ELITE, ORE, NEO, EVO, BOLT and HPA.',
+      cats:['Rifles'] },
+    { name:'Matador Tactical', origin:'Built in Hong Kong',
+      line:'Gas pump-action and kinetic-coil shotguns — TSG, CSG and SSG.',
+      cats:['Shotguns'] },
+  ];
+  const heroId = hero ? hero.id : null;
+  document.getElementById('brandRow').innerHTML = brands.map(b => {
+    const items = all.filter(p => p.brand === b.name);
+    // Never reuse the hero rifle here — two identical guns on one page reads as
+    // a thin catalog.
+    const shot = items.filter(p => b.cats.includes(p.category) && p.img && p.img.hero && p.id !== heroId)
+                      .sort((a,b2) => b2.msrp_usd - a.msrp_usd)[0]
+              || items.find(p => p.img && p.img.hero && p.id !== heroId);
+    // Band the guns, not the $3 o-rings — a range spanning both tells a dealer nothing.
+    const guns = items.filter(p => b.cats.includes(p.category));
+    const prices = guns.map(p => p.msrp_usd).filter(Boolean).sort((x,y) => x-y);
+    const band = prices.length
+      ? `${FS.usd(prices[0])} – ${FS.usd(prices[prices.length-1])}` : '—';
+    const inStock = items.filter(p => p.stock === 'in').length;
+    return `<article class="brandcard">
+      <p class="eyebrow">${b.origin}</p>
+      <h2 style="font-size:clamp(1.6rem,3vw,2.4rem)">${b.name}</h2>
+      <div class="shot">${shot ? `<img src="${shot.img.hero}" alt="${shot.name}" loading="lazy" decoding="async">` : ''}</div>
+      <p style="color:var(--text-2);max-width:42ch">${b.line}</p>
+      <div class="brandmeta">
+        <div><span>SKUs</span><b>${items.length}</b></div>
+        <div><span>In stock now</span><b>${inStock}</b></div>
+        <div><span>${b.cats[0]} MSRP</span><b>${band}</b></div>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="catalog.html?brand=${encodeURIComponent(b.name)}">
+        See the ${b.name} catalog</a>
+    </article>`;
+  }).join('');
+
+  /* four beats, each bound to a real part SKU */
+  const beatDefs = [
+    { n:'01', h:'The gearbox', kw:['gearbox','shell','piston'],
+      copy:'Everything mechanical lives here. A full-metal shell and a correctly shimmed gearset is the difference between a rifle that survives a season and one that comes back in a month.' },
+    { n:'02', h:'The hop-up', kw:['hop','bucking'],
+      copy:'The single biggest determinant of range and grouping, and the part most often blamed on the barrel. A rotary unit holds its setting through a full day of play.' },
+    { n:'03', h:'The motor', kw:['motor'],
+      copy:'Torque or speed, pick one. High-torque for a heavy spring and a stiff trigger, high-speed for semi-auto response. Matching it to the spring is the upsell your staff should be making.' },
+    { n:'04', h:'The barrel', kw:['barrel'],
+      copy:'Bore diameter and finish do less than the internet claims, but consistency does everything. Publish the number and let the customer decide.' },
+  ];
+  document.getElementById('beats').innerHTML = beatDefs.map(b => {
+    const p = all.find(x => x.img && x.img.hero &&
+      b.kw.some(k => x.name.toLowerCase().includes(k)));
+    return `<div class="beat reveal">
+      <div>
+        <div class="beat-n">${b.n}</div>
+        <h3 style="font-size:clamp(1.3rem,2.4vw,2rem);margin-bottom:.8rem">${b.h}</h3>
+        <p style="color:var(--text-2);max-width:46ch">${b.copy}</p>
+        ${p ? `<p style="margin-top:1.1rem"><a class="textlink" href="product.html?id=${encodeURIComponent(p.id)}">${p.sku} &rarr;</a></p>` : ''}
+      </div>
+      <div class="beat-media">${p ? `<img src="${p.img.hero}" alt="${p.name}" loading="lazy" decoding="async">` : ''}</div>
+    </div>`;
+  }).join('');
+
+  FS.revealOnScroll();
+
+  /* subtle hero parallax — pointer only, never on touch or reduced-motion */
+  const rifle = document.getElementById('heroRifle');
+  if (rifle && !reduced && matchMedia('(pointer:fine)').matches) {
+    let tx = 0, ty = 0, cx = 0, cy = 0, ticking = false;
+    addEventListener('pointermove', e => {
+      tx = (e.clientX / innerWidth - .5) * 26;
+      ty = (e.clientY / innerHeight - .5) * 16;
+      if (!ticking) { ticking = true; requestAnimationFrame(step); }
+    }, { passive: true });
+    function step() {
+      cx += (tx - cx) * .06; cy += (ty - cy) * .06;
+      rifle.style.transform = `translate3d(${cx}px, ${cy}px, 0)`;
+      if (Math.abs(tx - cx) > .1 || Math.abs(ty - cy) > .1) requestAnimationFrame(step);
+      else ticking = false;
+    }
+  }
+});
+</script>
+<style>@media (max-width:900px){ .comp-grid{ grid-template-columns:1fr !important; } }</style>
+</body>
+</html>

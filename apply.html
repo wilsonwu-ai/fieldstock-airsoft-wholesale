@@ -1,0 +1,807 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dealer application · Fieldstock Supply Co.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  .apply-head { padding-block: clamp(38px, 6vw, 76px) 1.6rem; }
+  .apply-head h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); margin-bottom: .7rem; }
+  .apply-head .lede { max-width: 58ch; }
+  .sla {
+    display: inline-flex; align-items: center; gap: .6rem;
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--text-2);
+    border: 1px solid var(--hairline-lit); border-radius: var(--r);
+    padding: .38rem .7rem; margin-top: .3rem;
+  }
+  .sla::before { content: ''; width: 6px; height: 6px; background: var(--orange); flex: none; }
+
+  /* ---------- stepper ---------- */
+  /* --hdr-h is measured from the live header at runtime: the header is two rows
+     on small screens, so a hard-coded 66px let the stepper slide underneath it. */
+  .stepwrap { border-block: 1px solid var(--hairline); background: var(--surface-1); position: sticky; top: var(--hdr-h, 66px); z-index: 40; }
+  .progress { height: 2px; background: var(--hairline); }
+  .progress span { display: block; height: 100%; width: 0; background: var(--orange); transition: width var(--t); }
+  .stepper {
+    list-style: none; margin: 0; padding: .8rem 0; display: flex; gap: 1.5rem;
+    overflow-x: auto; scrollbar-width: thin;
+  }
+  .stepper li {
+    display: flex; align-items: center; gap: .5rem; white-space: nowrap;
+    font-family: var(--font-mono); font-size: .66rem; letter-spacing: .11em;
+    text-transform: uppercase; color: var(--text-mute);
+  }
+  .stepper .dot {
+    width: 20px; height: 20px; flex: none; display: grid; place-items: center;
+    border: 1px solid var(--hairline-lit); border-radius: var(--r);
+    font-size: .6rem; color: var(--text-mute);
+  }
+  .stepper li[data-state="done"] { color: var(--text-2); }
+  .stepper li[data-state="done"] .dot { border-color: var(--orange); color: var(--orange); }
+  .stepper li[data-state="current"] { color: var(--text); }
+  .stepper li[data-state="current"] .dot { background: var(--orange); border-color: var(--orange); color: var(--on-orange); }
+
+  /* ---------- panels ---------- */
+  .apply-body { padding-block: clamp(30px, 5vw, 58px) clamp(56px, 8vw, 104px); }
+  .panel { max-width: 780px; }
+  .panel[hidden] { display: none; }
+  .panel h2 { font-size: clamp(1.5rem, 2.6vw, 2.1rem); margin-bottom: .5rem; }
+  .panel > .lede { margin-bottom: 1.9rem; font-size: 1rem; }
+  .stepcount {
+    font-family: var(--font-mono); font-size: .64rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--text-mute); margin-bottom: .7rem;
+    /* header + stepper are both sticky; without this the step heading we scroll
+       to lands underneath ~127px of chrome. --sticky-h is set at runtime. */
+    scroll-margin-top: calc(var(--sticky-h, 128px) + 16px);
+  }
+  /* a <label> with no control is not a label — the ship-to group is labelled
+     through aria-labelledby instead, so it needs a plain element. */
+  .group-label {
+    font-family: var(--font-mono); font-size: .64rem;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--text-mute);
+  }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.15rem; }
+  .form-grid .span2 { grid-column: 1 / -1; }
+  @media (max-width: 620px) { .form-grid { grid-template-columns: 1fr; } .form-grid .span2 { grid-column: auto; } }
+
+  .req { color: var(--orange); }
+  .hint { font-size: .78rem; color: var(--text-mute); }
+  .err {
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .05em; color: var(--danger);
+  }
+  .err:empty { display: none; }
+  [aria-invalid="true"].input, fieldset[aria-invalid="true"], .states[aria-invalid="true"] { border-color: var(--danger); }
+
+  fieldset {
+    border: 1px solid var(--hairline); border-radius: var(--r);
+    padding: 1rem 1.05rem 1.1rem; margin: 0;
+  }
+  legend {
+    font-family: var(--font-mono); font-size: .64rem; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--text-mute); padding-inline: .4rem;
+  }
+  .check { display: flex; align-items: flex-start; gap: .6rem; font-size: .89rem; color: var(--text-2); padding-block: .3rem; }
+  .check input { accent-color: var(--orange); width: 16px; height: 16px; margin: .2rem 0 0; flex: none; }
+  .check strong { color: var(--text); font-weight: 600; }
+
+  .checklist { list-style: none; margin: 0 0 1.6rem; padding: 0; display: grid; gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); }
+  .checklist li { background: var(--ground); padding: .95rem 1.05rem; display: grid; grid-template-columns: 26px 1fr; gap: .2rem .7rem; }
+  .checklist .n { font-family: var(--font-mono); font-size: .7rem; color: var(--orange); grid-row: 1 / span 2; padding-top: .12rem; }
+  .checklist .t { font-weight: 600; font-size: .95rem; }
+  .checklist .d { font-size: .84rem; color: var(--text-2); }
+
+  .filewell {
+    border: 1px dashed var(--hairline-lit); border-radius: var(--r);
+    padding: 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: .9rem;
+    background: var(--surface-1);
+  }
+  .filewell input[type="file"] { max-width: 100%; font-size: .82rem; color: var(--text-2); }
+  .filewell input[type="file"]::file-selector-button {
+    background: transparent; color: var(--text); border: 1px solid var(--hairline-lit);
+    border-radius: var(--r); padding: .45rem .8rem; margin-right: .8rem; cursor: pointer;
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+  }
+  .filewell input[type="file"]::file-selector-button:hover { border-color: var(--orange); color: var(--orange); }
+  .filename { font-family: var(--font-mono); font-size: .72rem; color: var(--stock); }
+
+  .states {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: .1rem .6rem; max-height: 250px; overflow-y: auto;
+    border: 1px solid var(--hairline); border-radius: var(--r); padding: .7rem .8rem;
+    background: var(--surface-1);
+  }
+  .states label { display: flex; align-items: center; gap: .45rem; font-size: .82rem; color: var(--text-2); padding-block: .18rem; }
+  .states input { accent-color: var(--orange); width: 15px; height: 15px; flex: none; }
+  .states label.flagged { color: var(--danger); }
+  .states .rx { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .08em; }
+  .states-tools { display: flex; gap: .8rem; margin-bottom: .6rem; flex-wrap: wrap; }
+
+  .restricted {
+    border-left: 2px solid var(--danger); background: var(--surface-1);
+    padding: .9rem 1.05rem; font-size: .84rem; color: var(--text-2); margin-top: .9rem;
+  }
+  .restricted h4 { font-family: var(--font-mono); font-variation-settings: normal; font-size: .66rem; letter-spacing: .14em; color: var(--danger); margin-bottom: .5rem; }
+  .restricted a { color: var(--orange); text-decoration: underline; }
+  .restricted[hidden] { display: none; }
+
+  .navrow {
+    display: flex; gap: .8rem; align-items: center; flex-wrap: wrap;
+    margin-top: 2rem; padding-top: 1.4rem; border-top: 1px solid var(--hairline);
+  }
+  .navrow .spacer { margin-left: auto; }
+  .formerr { font-family: var(--font-mono); font-size: .7rem; color: var(--danger); }
+
+  .esign {
+    font-family: var(--font-mono); font-size: 1.05rem; letter-spacing: .04em;
+  }
+
+  /* ---------- confirmation ---------- */
+  /* the stepper is hidden by then, so only the header is still sticky */
+  #donePanel { scroll-margin-top: calc(var(--hdr-h, 66px) + 20px); }
+  .done-mark {
+    width: 42px; height: 42px; border: 1px solid var(--orange); border-radius: var(--r);
+    display: grid; place-items: center; color: var(--orange); margin-bottom: 1.2rem;
+  }
+  .next-list { list-style: none; margin: 1.4rem 0 0; padding: 0; display: grid; gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); }
+  .next-list li { background: var(--ground); padding: 1rem 1.1rem; display: grid; grid-template-columns: 30px 1fr; gap: .2rem .7rem; }
+  .next-list .n { font-family: var(--font-mono); font-size: .68rem; color: var(--orange); grid-row: 1 / span 2; }
+  .next-list .t { font-weight: 600; font-size: .95rem; }
+  .next-list .d { font-size: .85rem; color: var(--text-2); }
+</style>
+</head><body>
+<div id="chrome-header"></div>
+
+<main>
+  <div class="wrap apply-head">
+    <p class="eyebrow">Dealer application</p>
+    <h1>Open a wholesale account</h1>
+    <p class="lede">Trade accounts only. We stock Raven Evolution and Matador Tactical for US
+      retailers, mark to 16 CFR Part 1272 before the box ships, and keep the GCC on file for
+      every SKU. Seven steps, roughly ten minutes if your paperwork is to hand.</p>
+    <p class="sla">Most applications are reviewed within 5 business days</p>
+  </div>
+
+  <div class="stepwrap">
+    <div class="progress" aria-hidden="true"><span id="progressFill"></span></div>
+    <div class="wrap">
+      <ol class="stepper" id="stepper" aria-label="Application progress"></ol>
+    </div>
+  </div>
+
+  <div class="wrap apply-body">
+    <p class="stepcount" id="liveStep" role="status" aria-live="polite"></p>
+
+    <form id="applyForm" class="panel" novalidate autocomplete="off">
+
+      <!-- 0 — requirements -->
+      <section class="panel" data-step="0" aria-labelledby="h0">
+        <h2 id="h0">Before you start</h2>
+        <p class="lede">Nothing here is a formality. An application missing the resale
+          certificate or proof of trade sits in the queue rather than moving through it, so it
+          is worth gathering these five items first.</p>
+        <ul class="checklist">
+          <li><span class="n">01</span><span class="t">EIN / federal tax ID</span>
+            <span class="d">The number as issued to the legal entity, not to an owner personally.</span></li>
+          <li><span class="n">02</span><span class="t">State resale or exemption certificate</span>
+            <span class="d">A PDF or photo, current and readable, with the issuing state named. This is the legally load-bearing document in the file.</span></li>
+          <li><span class="n">03</span><span class="t">Proof of trade</span>
+            <span class="d">A storefront photograph, or a live store URL we can open. Marketplace-only sellers should have their seller handles ready.</span></li>
+          <li><span class="n">04</span><span class="t">Owner or officer photo ID</span>
+            <span class="d">Used to confirm the person signing controls the entity. We record that it was checked, never the number on it.</span></li>
+          <li><span class="n">05</span><span class="t">Ship-to states</span>
+            <span class="d">Everywhere you intend to ship. Some markets are restricted and we will tell you which before you finish, not after.</span></li>
+        </ul>
+        <div class="note" role="note">
+          <strong>Demo form.</strong> This application does not submit anywhere. There is no
+          server, no upload and no storage: file pickers record only the file name for display,
+          and nothing you type leaves this browser tab. Do not upload a real identity document
+          or certificate.
+        </div>
+      </section>
+
+      <!-- 1 — business identity -->
+      <section class="panel" data-step="1" aria-labelledby="h1b" hidden>
+        <h2 id="h1b">Business identity</h2>
+        <p class="lede">The legal entity that will hold the account. Company-level, not
+          buyer-level — locations and named buyers are added after approval.</p>
+        <div class="form-grid">
+          <div class="field span2">
+            <label for="legalName">Legal entity name <span class="req">*</span></label>
+            <input class="input" id="legalName" name="legalName" type="text" aria-describedby="legalNameErr" required>
+            <span class="err" id="legalNameErr"></span>
+          </div>
+          <div class="field">
+            <label for="dba">DBA / trading name</label>
+            <input class="input" id="dba" name="dba" type="text">
+          </div>
+          <div class="field">
+            <label for="ein">EIN <span class="req">*</span></label>
+            <input class="input mono" id="ein" name="ein" type="text" inputmode="numeric"
+                   placeholder="00-0000000" maxlength="10" aria-describedby="einHint einErr" required>
+            <span class="hint" id="einHint">Format 00-0000000. Demo form — use a placeholder, not your real number.</span>
+            <span class="err" id="einErr"></span>
+          </div>
+          <div class="field">
+            <label for="entity">Entity type <span class="req">*</span></label>
+            <select class="input" id="entity" name="entity" aria-describedby="entityErr" required>
+              <option value="">Select…</option>
+              <option>LLC</option>
+              <option>S-Corporation</option>
+              <option>C-Corporation</option>
+              <option>Partnership</option>
+              <option>Sole proprietorship</option>
+            </select>
+            <span class="err" id="entityErr"></span>
+          </div>
+          <div class="field">
+            <label for="years">Years trading <span class="req">*</span></label>
+            <input class="input mono" id="years" name="years" type="number" min="0" max="120" step="1"
+                   aria-describedby="yearsErr" required>
+            <span class="err" id="yearsErr"></span>
+          </div>
+          <div class="field span2">
+            <label for="website">Company website</label>
+            <input class="input" id="website" name="website" type="url" placeholder="https://">
+            <span class="hint">Optional here. If you sell only on marketplaces, list the handles in step 4.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 — tax -->
+      <section class="panel" data-step="2" aria-labelledby="h2b" hidden>
+        <h2 id="h2b">Tax documentation</h2>
+        <p class="lede">We collect sales tax unless a valid resale or exemption certificate is on
+          file for the shipping state. A missing certificate is the single most common reason an
+          application stalls.</p>
+        <div class="form-grid">
+          <div class="field span2">
+            <label for="resaleFile">Resale / exemption certificate <span class="req">*</span></label>
+            <div class="filewell">
+              <input type="file" id="resaleFile" name="resaleFile" accept=".pdf,.jpg,.jpeg,.png"
+                     aria-describedby="resaleHint resaleFileErr" required>
+              <span class="filename" id="resaleFileName"></span>
+            </div>
+            <span class="hint" id="resaleHint">PDF or photo. Placeholder only in this demo — the file is never read or uploaded.</span>
+            <span class="err" id="resaleFileErr"></span>
+          </div>
+          <div class="field">
+            <label for="resaleState">Issuing state <span class="req">*</span></label>
+            <select class="input" id="resaleState" name="resaleState" aria-describedby="resaleStateErr" required>
+              <option value="">Select…</option>
+            </select>
+            <span class="err" id="resaleStateErr"></span>
+          </div>
+          <div class="field">
+            <label for="certExpiry">Certificate expiry</label>
+            <input class="input mono" id="certExpiry" name="certExpiry" type="date">
+            <span class="hint">Leave blank if the certificate does not expire.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 — proof of trade -->
+      <section class="panel" data-step="3" aria-labelledby="h3b" hidden>
+        <h2 id="h3b">Proof of trade</h2>
+        <p class="lede">Give us one of the two: a photograph of the storefront, or a live store
+          URL. This is what separates a retailer from a private buyer looking for dealer cost.</p>
+        <div class="form-grid">
+          <div class="field span2">
+            <label for="tradeFile">Storefront photograph</label>
+            <div class="filewell">
+              <input type="file" id="tradeFile" name="tradeFile" accept=".jpg,.jpeg,.png,.webp"
+                     aria-describedby="tradeHint">
+              <span class="filename" id="tradeFileName"></span>
+            </div>
+            <span class="hint" id="tradeHint">Exterior with signage, or the retail floor. Placeholder only — nothing uploads.</span>
+          </div>
+          <div class="field span2">
+            <label for="storeUrl">…or live store URL</label>
+            <input class="input" id="storeUrl" name="storeUrl" type="url" placeholder="https://"
+                   aria-describedby="tradeErr">
+            <span class="err" id="tradeErr"></span>
+          </div>
+          <div class="field span2">
+            <label for="handles">Marketplace handles</label>
+            <textarea class="input" id="handles" name="handles" rows="3"
+              placeholder="eBay: seller-name&#10;Amazon: Store Name&#10;Facebook / Instagram: @handle"
+              style="min-height:110px"></textarea>
+            <span class="hint">One per line. Optional, but it shortens the review for marketplace-first sellers.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 — channel + ship-to -->
+      <section class="panel" data-step="4" aria-labelledby="h4b" hidden>
+        <h2 id="h4b">Channels and ship-to states</h2>
+        <p class="lede">Channel declaration is contractual: MAP and the channel restrictions in
+          step 7 are enforced per declared channel. Ship-to selection drives which marking tier
+          we apply and which ZIPs the cart will block.</p>
+
+        <fieldset id="channelSet" aria-describedby="channelErr">
+          <legend>Where you sell <span class="req">*</span></legend>
+          <label class="check"><input type="checkbox" name="channel" value="brick"><span><strong>Brick-and-mortar retail</strong> — your own storefront</span></label>
+          <label class="check"><input type="checkbox" name="channel" value="ecom"><span><strong>Own e-commerce site</strong> — domain you control</span></label>
+          <label class="check"><input type="checkbox" name="channel" value="marketplace"><span><strong>Third-party marketplaces</strong> — eBay, Amazon, Walmart</span></label>
+          <label class="check"><input type="checkbox" name="channel" value="field"><span><strong>Field or event retail</strong> — pro shop, on-site sales</span></label>
+          <label class="check"><input type="checkbox" name="channel" value="rental"><span><strong>Rental / training</strong> — fleet purchase, not resale</span></label>
+          <span class="err" id="channelErr"></span>
+        </fieldset>
+
+        <div class="field" style="margin-top:1.3rem">
+          <span class="group-label" id="statesLabel">Ship-to states <span class="req">*</span></span>
+          <div class="states-tools">
+            <button type="button" class="btn btn-ghost btn-sm" id="statesAll">Select all</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="statesNone">Clear</button>
+          </div>
+          <div class="states" id="statesGrid" role="group" aria-labelledby="statesLabel" aria-describedby="statesErr"></div>
+          <span class="err" id="statesErr"></span>
+        </div>
+
+        <fieldset style="margin-top:1.3rem">
+          <legend>Municipal markets</legend>
+          <p class="hint" style="margin:0 0 .5rem">We screen the cart by ZIP, not by state — a state-level rule misses a Manhattan or a Chicago ZIP. Tell us if you intend to ship into any of these.</p>
+          <label class="check"><input type="checkbox" name="muni" value="NYC"><span>New York City</span></label>
+          <label class="check"><input type="checkbox" name="muni" value="Chicago"><span>Chicago</span></label>
+          <label class="check"><input type="checkbox" name="muni" value="Philadelphia"><span>Philadelphia</span></label>
+        </fieldset>
+
+        <p class="sr-only" id="restrictedLive" role="status" aria-live="polite"></p>
+        <div class="restricted" id="restrictedBox" hidden>
+          <h4>Restricted destinations in your selection</h4>
+          <p id="restrictedList" style="margin:0 0 .6rem"></p>
+          <p style="margin:0 0 .6rem"><strong>New Jersey</strong> is blocked statewide.
+            <strong>New York City</strong>, <strong>Chicago</strong> (Municipal Code 4-144-190)
+            and <strong>Philadelphia</strong> are blocked municipally. Orders to those ZIPs will
+            not clear the cart, and <strong>New York State</strong> carries the strictest marking
+            regime in the country, actively enforced against sellers shipping in. You can still
+            hold the account; those destinations simply will not ship.</p>
+          <p style="margin:0"><a href="compliance.html">Read the marking and ZIP-block detail</a>.
+            Scoping summary, not legal advice — confirm with your own counsel.</p>
+        </div>
+      </section>
+
+      <!-- 5 — officer ID -->
+      <section class="panel" data-step="5" aria-labelledby="h5b" hidden>
+        <h2 id="h5b">Owner or officer identity</h2>
+        <p class="lede">One photo ID for the person signing, to confirm they control the entity
+          named in step 2. We record that the check was performed and by whom — we do not keep
+          the document number.</p>
+        <div class="form-grid">
+          <div class="field span2">
+            <label for="idFile">Photo ID <span class="req">*</span></label>
+            <div class="filewell">
+              <input type="file" id="idFile" name="idFile" accept=".pdf,.jpg,.jpeg,.png"
+                     aria-describedby="idHint idFileErr" required>
+              <span class="filename" id="idFileName"></span>
+            </div>
+            <span class="err" id="idFileErr"></span>
+          </div>
+          <div class="field span2">
+            <label for="officerName">Name as it appears on the ID <span class="req">*</span></label>
+            <input class="input" id="officerName" name="officerName" type="text" aria-describedby="officerNameErr" required>
+            <span class="err" id="officerNameErr"></span>
+          </div>
+        </div>
+        <div class="note" style="margin-top:1.3rem" role="note" id="idHint">
+          <strong>Do not upload a real ID to this demo.</strong> No file is read, uploaded or
+          stored — the picker records the file name for display and nothing else. We never ask for
+          a driver's licence number, a passport number or a social security number, here or later.
+        </div>
+      </section>
+
+      <!-- 6 — agreement -->
+      <section class="panel" data-step="6" aria-labelledby="h6b" hidden>
+        <h2 id="h6b">Terms and acknowledgement</h2>
+        <p class="lede">Five acknowledgements and a typed signature. These are the terms that get
+          an account suspended when they are broken, so read them rather than clicking through.</p>
+
+        <fieldset id="agreeSet" aria-describedby="agreeErr">
+          <legend>Acknowledgements <span class="req">*</span></legend>
+          <label class="check"><input type="checkbox" name="agree" value="map">
+            <span><strong>MAP policy.</strong> I will not advertise below the published MAP floor.
+            MAP governs advertised price, not the price in cart.</span></label>
+          <label class="check"><input type="checkbox" name="agree" value="channel">
+            <span><strong>Channel restrictions.</strong> I will sell only through the channels
+            declared in step 5, and will not transship to unauthorised resellers or export
+            without written approval.</span></label>
+          <label class="check"><input type="checkbox" name="agree" value="confidential">
+            <span><strong>Pricing confidentiality.</strong> Tier pricing, cost sheets and
+            allocation terms are confidential and will not be republished.</span></label>
+          <label class="check"><input type="checkbox" name="agree" value="rma">
+            <span><strong>RMA policy.</strong> Warranty claims are filed with an RMA number
+            before return, within the stated window, with serial and fault detail.</span></label>
+          <label class="check"><input type="checkbox" name="agree" value="marking">
+            <span><strong>Orange tip and 16 CFR Part 1272.</strong> I will not remove, paint over
+            or obscure the federally required blaze-orange muzzle marking, or the additional
+            fluorescent markings applied for California and New York, before or after retail
+            sale. I accept that this is a scoping summary and not a legal opinion, and that
+            confirming state and municipal rules for my own market is my responsibility.</span></label>
+          <span class="err" id="agreeErr"></span>
+        </fieldset>
+
+        <div class="form-grid" style="margin-top:1.3rem">
+          <div class="field">
+            <label for="sigName">Typed signature <span class="req">*</span></label>
+            <input class="input esign" id="sigName" name="sigName" type="text"
+                   placeholder="Full legal name" aria-describedby="sigHint sigNameErr" required>
+            <span class="hint" id="sigHint">Typing your name here is the signature of record.</span>
+            <span class="err" id="sigNameErr"></span>
+          </div>
+          <div class="field">
+            <label for="sigTitle">Title <span class="req">*</span></label>
+            <input class="input" id="sigTitle" name="sigTitle" type="text"
+                   placeholder="Owner, President, Buyer" aria-describedby="sigTitleErr" required>
+            <span class="err" id="sigTitleErr"></span>
+          </div>
+          <div class="field">
+            <label for="sigDate">Date</label>
+            <input class="input mono" id="sigDate" name="sigDate" type="text" readonly>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:1.3rem" role="note">
+          <strong>Nothing is transmitted when you finish.</strong> This is a demonstration form
+          with no backend. The next screen is generated locally in your browser.
+        </div>
+      </section>
+
+      <!-- nav -->
+      <div class="navrow" id="navRow">
+        <button type="button" class="btn btn-ghost" id="backBtn" hidden>Back</button>
+        <span class="spacer"></span>
+        <span class="formerr" id="formErr" role="status" aria-live="polite"></span>
+        <button type="submit" class="btn" id="nextBtn">Start application</button>
+      </div>
+    </form>
+
+    <!-- confirmation -->
+    <section class="panel" id="donePanel" aria-labelledby="hdone" hidden>
+      <div class="done-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 10.5 L8 14.5 L16 5.5"/>
+        </svg>
+      </div>
+      <p class="eyebrow">Application complete</p>
+      <h2 id="hdone">That is everything we need</h2>
+      <p class="lede">Most applications are reviewed within 5 business days. Applications
+        arriving with a legible resale certificate and a working store URL are usually faster;
+        the ones that stall are missing one of those two.</p>
+
+      <ol class="next-list">
+        <li><span class="n">01</span><span class="t">Document check — days 1 to 2</span>
+          <span class="d">We read the resale certificate against the issuing state's register and open the store URL. If something is unreadable we email you rather than declining.</span></li>
+        <li><span class="n">02</span><span class="t">Trade and channel review — days 2 to 4</span>
+          <span class="d">Channel declaration is checked against what we can see publicly. Ship-to states set your marking tier and the ZIP blocks on your account.</span></li>
+        <li><span class="n">03</span><span class="t">Terms and account opening — day 5</span>
+          <span class="d">Approved accounts open at Tier 3 — Stocking Dealer, 1+ units, with terms quoted separately. Volume tiers are earned on 12-month volume, not negotiated at signup.</span></li>
+        <li><span class="n">04</span><span class="t">First order</span>
+          <span class="d">Sign-in unlocks net pricing, on-hand counts, case packs and the quick-order paste box. Your rep is named on the portal from day one.</span></li>
+      </ol>
+
+      <div class="note" style="margin-top:1.6rem" role="note">
+        <strong>Nothing was submitted.</strong> This is a static demonstration site with no
+        backend, no upload endpoint and no database. Every value you entered stayed in this
+        browser tab and is discarded when you close or reload it. No reference number is issued,
+        because no application exists.
+      </div>
+
+      <div class="navrow">
+        <a class="btn" href="login.html">Try the dealer sign-in</a>
+        <a class="btn btn-ghost" href="catalog.html">Browse the public catalog</a>
+        <a class="btn btn-ghost" href="compliance.html">Compliance detail</a>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="chrome-footer"></div>
+<script src="assets/js/store.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var STEPS = [
+    'Before you start', 'Business', 'Tax', 'Proof of trade',
+    'Channels', 'Officer ID', 'Agreement'
+  ];
+  var LAST = STEPS.length - 1;
+  var current = 0;
+
+  var form      = document.getElementById('applyForm');
+  var panels    = Array.prototype.slice.call(form.querySelectorAll('section.panel'));
+  var stepper   = document.getElementById('stepper');
+  var fill      = document.getElementById('progressFill');
+  var liveStep  = document.getElementById('liveStep');
+  var backBtn   = document.getElementById('backBtn');
+  var nextBtn   = document.getElementById('nextBtn');
+  var formErr   = document.getElementById('formErr');
+  var donePanel = document.getElementById('donePanel');
+  var navRow    = document.getElementById('navRow');
+
+  var STATES = [
+    ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],
+    ['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','District of Columbia'],
+    ['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],
+    ['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],
+    ['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],
+    ['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],
+    ['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],
+    ['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],
+    ['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],
+    ['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],
+    ['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']
+  ];
+
+  /* ---------- build stepper ---------- */
+  STEPS.forEach(function (label, i) {
+    var li = document.createElement('li');
+    li.setAttribute('data-i', String(i));
+    li.innerHTML = '<span class="dot">' + (i + 1) + '</span><span>' + label + '</span>';
+    stepper.appendChild(li);
+  });
+
+  /* ---------- build state grid + issuing-state select ---------- */
+  var grid = document.getElementById('statesGrid');
+  var sel = document.getElementById('resaleState');
+  STATES.forEach(function (s) {
+    var id = 'st-' + s[0];
+    var lab = document.createElement('label');
+    lab.setAttribute('for', id);
+    if (s[0] === 'NJ') lab.className = 'flagged';
+    lab.innerHTML = '<input type="checkbox" id="' + id + '" name="shipState" value="' + s[0] + '">' +
+      '<span>' + s[0] + (s[0] === 'NJ' ? ' <span class="rx">RESTRICTED</span>' : '') + '</span>';
+    lab.title = s[1];
+    grid.appendChild(lab);
+
+    var opt = document.createElement('option');
+    opt.value = s[0]; opt.textContent = s[1];
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('statesAll').addEventListener('click', function () {
+    setAllStates(true);
+  });
+  document.getElementById('statesNone').addEventListener('click', function () {
+    setAllStates(false);
+  });
+  function setAllStates(v) {
+    grid.querySelectorAll('input[name="shipState"]').forEach(function (c) { c.checked = v; });
+    updateRestricted();
+  }
+
+  /* ---------- restricted notice ---------- */
+  var restrictedBox = document.getElementById('restrictedBox');
+  var restrictedList = document.getElementById('restrictedList');
+  var restrictedLive = document.getElementById('restrictedLive');
+  function updateRestricted() {
+    var hits = [];
+    if (document.getElementById('st-NJ').checked) hits.push('New Jersey (statewide)');
+    if (document.getElementById('st-NY').checked) hits.push('New York State (Tier 3 marking)');
+    form.querySelectorAll('input[name="muni"]:checked').forEach(function (c) {
+      hits.push(c.value + ' (municipal)');
+    });
+    if (hits.length) {
+      restrictedList.textContent = 'Flagged: ' + hits.join(' · ');
+      restrictedBox.hidden = false;
+      // announced from a region that is never display:none, so it is actually read
+      restrictedLive.textContent =
+        'Restricted destinations in your selection: ' + hits.join(', ') +
+        '. Those destinations will not ship; the account is unaffected.';
+    } else {
+      restrictedBox.hidden = true;
+      restrictedLive.textContent = '';
+    }
+  }
+  form.addEventListener('change', function (e) {
+    if (e.target.name === 'shipState' || e.target.name === 'muni') updateRestricted();
+    // file pickers and checkbox groups fire change, not input — clear their
+    // errors here or a fixed field keeps showing a stale message.
+    if (e.target.id && document.getElementById(e.target.id + 'Err')) {
+      setErr(e.target, e.target.id + 'Err', '');
+    }
+    if (e.target.name === 'channel') setErr(document.getElementById('channelSet'), 'channelErr', '');
+    if (e.target.name === 'shipState') setErr(grid, 'statesErr', '');
+    if (e.target.name === 'agree' &&
+        form.querySelectorAll('input[name="agree"]:checked').length ===
+        form.querySelectorAll('input[name="agree"]').length) {
+      setErr(document.getElementById('agreeSet'), 'agreeErr', '');
+    }
+  });
+
+  /* ---------- file name display only — files are never read ---------- */
+  [['resaleFile','resaleFileName'], ['tradeFile','tradeFileName'], ['idFile','idFileName']]
+    .forEach(function (pair) {
+      var input = document.getElementById(pair[0]);
+      var out = document.getElementById(pair[1]);
+      input.addEventListener('change', function () {
+        out.textContent = input.files && input.files.length ? input.files[0].name + ' — selected, not uploaded' : '';
+      });
+    });
+
+  /* ---------- validation helpers ---------- */
+  function setErr(el, errId, msg) {
+    var e = document.getElementById(errId);
+    if (e) e.textContent = msg || '';
+    if (el) el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    return !msg;
+  }
+  function reqText(id, errId, msg) {
+    var el = document.getElementById(id);
+    return setErr(el, errId, el.value.trim() ? '' : msg);
+  }
+  function firstInvalid() {
+    var el = panels[current].querySelector('[aria-invalid="true"]');
+    if (el) {
+      var f = el.matches('input,select,textarea') ? el : el.querySelector('input,select,textarea');
+      if (f && f.focus) f.focus();
+    }
+  }
+
+  var validators = {
+    0: function () { return true; },
+
+    1: function () {
+      var ok = reqText('legalName', 'legalNameErr', 'Enter the legal entity name.');
+      var ein = document.getElementById('ein');
+      var einVal = ein.value.trim();
+      ok = setErr(ein, 'einErr',
+        !einVal ? 'Enter an EIN. Use a placeholder such as 00-0000000.'
+          : !/^\d{2}-?\d{7}$/.test(einVal) ? 'EIN must be nine digits, formatted 00-0000000.'
+          : '') && ok;
+      var ent = document.getElementById('entity');
+      ok = setErr(ent, 'entityErr', ent.value ? '' : 'Select an entity type.') && ok;
+      var yrs = document.getElementById('years');
+      var y = yrs.value.trim();
+      ok = setErr(yrs, 'yearsErr',
+        y === '' ? 'Enter years trading — 0 is a valid answer.'
+          : (isNaN(Number(y)) || Number(y) < 0 || Number(y) > 120) ? 'Enter a whole number between 0 and 120.'
+          : '') && ok;
+      return ok;
+    },
+
+    2: function () {
+      var f = document.getElementById('resaleFile');
+      var ok = setErr(f, 'resaleFileErr',
+        f.files && f.files.length ? '' : 'Attach the resale or exemption certificate.');
+      var s = document.getElementById('resaleState');
+      ok = setErr(s, 'resaleStateErr', s.value ? '' : 'Name the issuing state.') && ok;
+      return ok;
+    },
+
+    3: function () {
+      var f = document.getElementById('tradeFile');
+      var url = document.getElementById('storeUrl');
+      var hasFile = !!(f.files && f.files.length);
+      var v = url.value.trim();
+      if (!hasFile && !v) {
+        return setErr(url, 'tradeErr', 'Give us one of the two: a storefront photo or a live store URL.');
+      }
+      if (v && !/^https?:\/\/[^\s.]+\.[^\s]{2,}$/i.test(v)) {
+        return setErr(url, 'tradeErr', 'Enter a full URL including https://');
+      }
+      return setErr(url, 'tradeErr', '');
+    },
+
+    4: function () {
+      var chans = form.querySelectorAll('input[name="channel"]:checked').length;
+      var ok = setErr(document.getElementById('channelSet'), 'channelErr',
+        chans ? '' : 'Select at least one channel.');
+      var states = grid.querySelectorAll('input[name="shipState"]:checked').length;
+      ok = setErr(grid, 'statesErr', states ? '' : 'Select at least one ship-to state.') && ok;
+      return ok;
+    },
+
+    5: function () {
+      var f = document.getElementById('idFile');
+      var ok = setErr(f, 'idFileErr', f.files && f.files.length ? '' : 'Attach a photo ID placeholder.');
+      ok = reqText('officerName', 'officerNameErr', 'Enter the name as it appears on the ID.') && ok;
+      return ok;
+    },
+
+    6: function () {
+      var boxes = form.querySelectorAll('input[name="agree"]');
+      var checked = form.querySelectorAll('input[name="agree"]:checked').length;
+      var ok = setErr(document.getElementById('agreeSet'), 'agreeErr',
+        checked === boxes.length ? '' : 'All five acknowledgements are required.');
+      ok = reqText('sigName', 'sigNameErr', 'Type your full legal name as the signature.') && ok;
+      ok = reqText('sigTitle', 'sigTitleErr', 'Enter your title.') && ok;
+      return ok;
+    }
+  };
+
+  /* ---------- step rendering ---------- */
+  function render() {
+    panels.forEach(function (p, i) { p.hidden = i !== current; });
+    stepper.querySelectorAll('li').forEach(function (li, i) {
+      li.setAttribute('data-state', i < current ? 'done' : i === current ? 'current' : 'todo');
+      if (i === current) li.setAttribute('aria-current', 'step');
+      else li.removeAttribute('aria-current');
+    });
+    fill.style.width = Math.round((current / LAST) * 100) + '%';
+    liveStep.textContent = 'Step ' + (current + 1) + ' of ' + STEPS.length + ' — ' + STEPS[current];
+    // The stepper is 850px of content in a ~325px window on a phone. Without
+    // this the current step scrolls out of the rail and the progress the
+    // stepper exists to communicate is invisible.
+    var li = stepper.children[current];
+    if (li) stepper.scrollLeft = li.offsetLeft - (stepper.clientWidth - li.offsetWidth) / 2;
+    backBtn.hidden = current === 0;
+    nextBtn.textContent = current === 0 ? 'Start application'
+      : current === LAST ? 'Submit application' : 'Continue';
+    formErr.textContent = '';
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!validators[current]()) {
+      formErr.textContent = 'Check the highlighted fields.';
+      firstInvalid();
+      return;
+    }
+    if (current === LAST) { finish(); return; }
+    current++;
+    render();
+    document.getElementById('liveStep').scrollIntoView({ block: 'start' });
+  });
+
+  backBtn.addEventListener('click', function () {
+    if (current === 0) return;
+    current--;
+    render();
+    document.getElementById('liveStep').scrollIntoView({ block: 'start' });
+  });
+
+  function finish() {
+    // Nothing is submitted, serialised, stored or transmitted. The form is simply
+    // removed from the page and the confirmation is rendered locally.
+    form.hidden = true;
+    navRow.hidden = true;
+    document.querySelector('.stepwrap').hidden = true;
+    measureChrome();                 // the stepper is gone; sticky height shrank
+    fill.style.width = '100%';
+    liveStep.textContent = 'Application complete — nothing was submitted.';
+    donePanel.hidden = false;
+    donePanel.setAttribute('tabindex', '-1');
+    donePanel.focus();
+    donePanel.scrollIntoView({ block: 'start' });
+  }
+
+  // clear a field error as soon as the buyer starts fixing it
+  form.addEventListener('input', function (e) {
+    if (e.target.id && document.getElementById(e.target.id + 'Err')) {
+      setErr(e.target, e.target.id + 'Err', '');
+    }
+  });
+
+  document.getElementById('sigDate').value = new Date().toISOString().slice(0, 10);
+
+  FS.mountChrome('');
+  FS.revealOnScroll();
+
+  /* Sticky chrome is two elements of variable height (the header wraps to two
+     rows under 700px). Measure both rather than assuming 66px, so the stepper
+     sticks below the header and the step heading we scroll to clears them. */
+  function measureChrome() {
+    var hdr = document.getElementById('siteHeader');
+    var h = hdr ? Math.round(hdr.getBoundingClientRect().height) : 66;
+    var sw = document.querySelector('.stepwrap');
+    var s = sw && !sw.hidden ? Math.round(sw.getBoundingClientRect().height) : 0;
+    var root = document.documentElement.style;
+    root.setProperty('--hdr-h', h + 'px');
+    root.setProperty('--sticky-h', (h + s) + 'px');
+  }
+  measureChrome();
+  addEventListener('resize', measureChrome, { passive: true });
+  addEventListener('load', measureChrome);   // re-measure once webfonts land
+
+  // Browsers restore checkbox state on a soft reload; sync the notice to it.
+  updateRestricted();
+  render();
+})();
+</script>
+</body></html>

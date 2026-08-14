@@ -1,0 +1,774 @@
+<!doctype html><html lang="en" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quick order · Fieldstock Supply Co.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  /* Quick-order layout only. No token redefined, no second accent hue. */
+  .portal { padding-block: 1.6rem 4rem; }
+  .portal h1 { font-size: clamp(1.6rem, 2.6vw, 2.1rem); }
+
+  .panel { background: var(--surface-1); border: 1px solid var(--hairline); border-radius: var(--r); }
+  .panel + .panel { margin-top: 1rem; }
+  .panel-hd { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+              padding: .7rem .9rem; border-bottom: 1px solid var(--hairline); }
+  .panel-hd h2 { font-size: .82rem; letter-spacing: .1em;
+                 font-variation-settings: 'wdth' 84, 'wght' 700; }
+  .panel-hd .sub { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .08em;
+                   color: var(--text-mute); text-transform: uppercase; }
+  .panel-hd .spacer { margin-left: auto; }
+  .panel-bd { padding: .9rem; }
+  .panel-bd.flush { padding: 0; }
+
+  .doors { display: grid; gap: 1rem; grid-template-columns: minmax(0,1.25fr) minmax(0,1fr);
+           align-items: start; margin-top: 1rem; }
+  @media (max-width: 900px) { .doors { grid-template-columns: minmax(0, 1fr); } }
+
+  .hint { font-size: .78rem; color: var(--text-2); margin: 0 0 .7rem; }
+  .actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-top: .7rem; }
+  .linkish { background: none; border: 0; padding: 0; cursor: pointer;
+             font-family: var(--font-mono); font-size: .7rem; letter-spacing: .08em;
+             text-transform: uppercase; color: var(--orange-ink);
+             text-decoration: underline; text-underline-offset: 3px; }
+  .linkish:hover { color: var(--orange-press); }
+
+  .drop { border: 1px dashed var(--hairline-lit); border-radius: var(--r);
+          padding: 1rem; text-align: center; background: var(--surface-2); }
+  .drop.hot { border-color: var(--orange); background: var(--orange-wash); }
+  .drop p { font-size: .8rem; color: var(--text-2); margin: .6rem 0 0; }
+  /* A native file input carries an intrinsic min-width near 275px and pushed the
+     page wider than the viewport on a 320px phone. */
+  input[type=file] { font-size: .8rem; max-width: 100%; }
+
+  pre.tpl { font-family: var(--font-mono); font-size: .74rem; line-height: 1.5;
+            background: var(--surface-2); border: 1px solid var(--hairline);
+            border-radius: var(--r); padding: .7rem .8rem; overflow-x: auto; margin: .7rem 0 0; }
+
+  .log { font-family: var(--font-mono); font-size: .72rem; line-height: 1.55;
+         margin: .7rem 0 0; padding: 0; list-style: none; }
+  .log li { padding: .18rem 0; border-bottom: 1px solid var(--hairline); color: var(--text-2); }
+  .log li:last-child { border-bottom: 0; }
+  .log li b { color: var(--danger); font-weight: 500; }
+
+  table.data td .why { display: block; font-family: var(--font-mono); font-size: .66rem;
+                       letter-spacing: .04em; margin-top: .18rem; }
+  .why.warnc { color: var(--coyote); }
+  .why.badc  { color: var(--danger); }
+  .why.okc   { color: var(--text-mute); }
+
+  .qin { width: 78px; text-align: right; font-family: var(--font-mono);
+         font-variant-numeric: tabular-nums; background: var(--surface-2);
+         border: 1px solid var(--hairline); border-radius: var(--r); padding: .3rem .4rem; }
+  .qin:focus { border-color: var(--orange); outline: none; }
+  .qin.bad { border-color: var(--danger); }
+  select.varsel { max-width: 100%; font-size: .74rem; background: var(--surface-2);
+                  border: 1px solid var(--hairline); border-radius: var(--r);
+                  padding: .22rem .3rem; margin-top: .25rem; }
+  .xbtn { background: none; border: 1px solid var(--hairline); border-radius: var(--r);
+          color: var(--text-mute); cursor: pointer; line-height: 1; padding: .22rem .42rem;
+          font-family: var(--font-mono); font-size: .74rem; }
+  .xbtn:hover { border-color: var(--danger); color: var(--danger); }
+  .roundbtn { background: none; border: 1px solid var(--hairline-lit); border-radius: var(--r);
+              color: var(--text); cursor: pointer; font-family: var(--font-mono);
+              font-size: .62rem; letter-spacing: .06em; text-transform: uppercase;
+              padding: .2rem .42rem; margin-top: .28rem; }
+  .roundbtn:hover { border-color: var(--orange); color: var(--orange-ink); }
+  .logwrap { margin-top: .9rem; }
+  .logwrap h3 { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .14em;
+                color: var(--text-mute); font-variation-settings: normal; font-weight: 500; }
+
+  .fail { padding: .7rem .9rem; border-bottom: 1px solid var(--hairline); }
+  .fail:last-child { border-bottom: 0; }
+  .fail .badsku { font-family: var(--font-mono); font-size: .84rem; color: var(--danger); }
+  .fail .sugs { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; align-items: center; }
+  .fail .sugs span { font-size: .72rem; color: var(--text-mute); }
+  .sug { background: var(--surface-2); border: 1px solid var(--hairline-lit);
+         border-radius: var(--r); cursor: pointer; padding: .22rem .5rem;
+         font-family: var(--font-mono); font-size: .72rem; color: var(--text); }
+  .sug:hover { border-color: var(--orange); color: var(--orange-ink); }
+
+  .sumbar { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap;
+            padding: .8rem .9rem; border-top: 1px solid var(--hairline); }
+  .sumbar .total { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+                   font-size: 1rem; margin-left: auto; }
+  .sumbar .total span { color: var(--text-mute); font-size: .68rem; letter-spacing: .1em;
+                        text-transform: uppercase; margin-right: .5rem; }
+  .said { font-size: .78rem; color: var(--text-2); }
+  .said a { color: var(--orange-ink); text-decoration: underline; text-underline-offset: 2px; }
+  .said b { color: var(--danger); font-weight: 500; }
+  /* Table links carried no underline and no colour — indistinguishable from text. */
+  table.data td a { text-decoration: underline; text-underline-offset: 2px;
+                    text-decoration-color: var(--hairline-lit); }
+  table.data td a:hover { color: var(--orange-ink); text-decoration-color: currentColor; }
+
+  .gate { max-width: 520px; margin: 4rem auto; }
+  .gate .panel-bd p { font-size: .9rem; color: var(--text-2); }
+  .skel { color: var(--text-mute); font-family: var(--font-mono); font-size: .74rem;
+          letter-spacing: .1em; text-transform: uppercase; padding: 1rem 0; }
+  .empty { padding: 1.4rem .9rem; color: var(--text-mute); font-size: .84rem; }
+  .disclaim { font-size: .72rem; color: var(--text-mute); margin-top: 1.4rem; }
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+             overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+</style>
+</head><body>
+<div id="chrome-header"></div>
+
+<main class="wrap portal" id="qoMain">
+  <p class="skel" id="boot">Loading catalog…</p>
+</main>
+
+<div id="chrome-footer"></div>
+<script src="assets/js/store.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var main = document.getElementById('qoMain');
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function gate() {
+    main.innerHTML =
+      '<div class="gate panel">' +
+        '<div class="panel-hd"><h2>Sign in to continue</h2></div>' +
+        '<div class="panel-bd">' +
+          '<p>Quick order resolves SKUs against your own price list. It is not available ' +
+          'without an approved dealer login.</p>' +
+          '<p style="display:flex;gap:.6rem;flex-wrap:wrap;margin:0">' +
+            '<a class="btn" href="login.html">Dealer sign in</a>' +
+            '<a class="btn btn-ghost" href="apply.html">Apply for an account</a>' +
+          '</p>' +
+        '</div>' +
+      '</div>';
+    FS.mountChrome('portal');
+    FS.revealOnScroll();
+  }
+
+  if (!FS.user()) { gate(); return; }
+
+  /* Real SKUs used by the worked example. All four exist in products.json,
+     are unambiguous, and carry a real price. */
+  var EX_OK = ['ACC-108-1', 'RAV-V2-GBX-ETG', 'RAV-PH8', 'RAV-RMG-AR220-BK'];
+  var EXAMPLE =
+    'ACC-108-1, 8\n' +
+    'RAV-V2-GBX-ETG 12\n' +
+    'RAV-PH8\t25\n' +
+    'RAV-RMG-AR220-BK,24\n' +
+    'ACC-108-1,4';
+  var EXAMPLE_TYPO =
+    'ACC-018-1,8\n' +
+    'RAV-V2-GBX-ETC,12\n' +
+    'RAV-PH8,24\n' +
+    'NOT-A-REAL-SKU,10';
+
+  var MAX_ROWS = 200;
+
+  FS.products().then(function (all) {
+
+    /* ---------- SKU index. Several SKUs cover more than one finish, so the
+       index maps to a list and the row offers a variant picker. ---------- */
+    var index = {};
+    all.forEach(function (p) {
+      var k = p.sku.toUpperCase();
+      (index[k] || (index[k] = [])).push(p);
+    });
+    var SKUS = Object.keys(index);
+    var byId = {};
+    all.forEach(function (p) { byId[p.id] = p; });
+
+    /* draft: [{ sku, qty, chosen (product id|null), assumed (bool) }] */
+    var draft = [];
+    var csvLog = [];      // messages from the last CSV import — sticky
+    var pasteErrs = [];   // messages from the current paste-box contents — replaced
+                          // on every reparse. These used to be concatenated onto
+                          // csvLog, so one bad line still sitting in the textarea
+                          // appended a duplicate message every 300ms, forever.
+
+    /* ---------- parsing ---------- */
+    function parseText(text) {
+      var rows = [], errs = [];
+      text.split(/\r?\n/).forEach(function (raw, i) {
+        var line = raw.trim();
+        if (!line) return;
+        if (/^sku\b/i.test(line) && /qty|quantity/i.test(line)) return; // pasted header
+        var parts = line.split(/[\s,;]+/).filter(Boolean);
+        var sku = parts[0], qty = null;
+        // Tolerate "8 ACC-108-1" as well as "ACC-108-1 8".
+        if (parts.length > 1 && /^\d+$/.test(parts[0]) && !/^\d+$/.test(parts[1])) {
+          qty = parseInt(parts[0], 10); sku = parts[1];
+        } else {
+          for (var j = parts.length - 1; j >= 1; j--) {
+            if (/^\d+$/.test(parts[j])) { qty = parseInt(parts[j], 10); break; }
+          }
+        }
+        if (!sku) return;
+        if (qty !== null && qty <= 0) {
+          errs.push('Paste box, line ' + (i + 1) + ': quantity must be 1 or more — dropped.');
+          return;
+        }
+        rows.push({ sku: sku.toUpperCase(), qty: qty, assumed: qty === null, line: i + 1 });
+      });
+      return { rows: rows, errs: errs };
+    }
+
+    /* Dedupe and SUM repeated SKUs, preserving first-seen order. */
+    function collapse(rows) {
+      var order = [], seen = {};
+      rows.forEach(function (r) {
+        if (seen[r.sku]) {
+          var e = seen[r.sku];
+          if (r.qty !== null) { e.qty = (e.qty || 0) + r.qty; e.assumed = false; }
+          e.merged = (e.merged || 1) + 1;
+        } else {
+          seen[r.sku] = { sku: r.sku, qty: r.qty, assumed: r.assumed, chosen: null, merged: 1 };
+          order.push(seen[r.sku]);
+        }
+      });
+      return order;
+    }
+
+    /* ---------- fuzzy resolve ---------- */
+    function lev(a, b) {
+      if (a === b) return 0;
+      var m = a.length, n = b.length;
+      if (Math.abs(m - n) > 6) return 99;
+      var prev = new Array(n + 1), cur = new Array(n + 1), i, j;
+      for (j = 0; j <= n; j++) prev[j] = j;
+      for (i = 1; i <= m; i++) {
+        cur[0] = i;
+        for (j = 1; j <= n; j++) {
+          cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1,
+                            prev[j - 1] + (a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1));
+        }
+        for (j = 0; j <= n; j++) prev[j] = cur[j];
+      }
+      return prev[n];
+    }
+    function suggest(sku) {
+      var scored = SKUS.map(function (s) {
+        var d = lev(sku, s);
+        if (s.indexOf(sku) === 0 || sku.indexOf(s) === 0) d = Math.min(d, 1);
+        return { s: s, d: d };
+      }).filter(function (x) { return x.d <= 5; })
+        .sort(function (a, b) { return a.d - b.d || a.s.localeCompare(b.s); });
+      return scored.slice(0, 3);
+    }
+
+    /* ---------- draft maths ---------- */
+    function productFor(e) {
+      var list = index[e.sku];
+      if (!list) return null;
+      if (e.chosen && byId[e.chosen] && byId[e.chosen].sku.toUpperCase() === e.sku) return byId[e.chosen];
+      return list[0];
+    }
+    function evaluate(e) {
+      var list = index[e.sku];
+      var p = productFor(e);
+      if (!p) return { e: e, p: null, ok: false, reason: 'unmatched' };
+
+      /* Sixteen SKUs in the catalog are shared by more than one record, and the
+         sets are not finishes of one item — ACC-101-1 covers a magazine pack, an
+         O-ring kit and a complete gas shotgun. Silently taking list[0] and
+         pricing it was picking a product on the dealer's behalf. Ambiguity is a
+         thing the dealer resolves, not a thing we guess at. */
+      var ambiguous = list.length > 1 && !e.chosen;
+
+      var qty = e.qty === null ? p.minQty : e.qty;
+      var bad = null;
+      // While the SKU is ambiguous the case pack is list[0]'s, which may not be
+      // the pack of the product the dealer meant — do not offer to round to it.
+      if (ambiguous) bad = null;
+      else if (qty < p.minQty) bad = 'below-min';
+      else if (qty % p.increment !== 0) bad = 'not-multiple';
+      var soldOut = p.stock === 'out';
+      var unit = FS.netPrice(p, qty);
+      /* Seventeen records carry msrp_cad 0, so every tier price is 0 too. That
+         renders as "$0.00" — a dealer price we would have to walk back. It is
+         not a price; it is a missing price. */
+      var unpriced = !(unit > 0);
+      return {
+        e: e, p: p, qty: qty, unit: unit,
+        ext: (unpriced || ambiguous) ? null : unit * qty,
+        bad: bad, soldOut: soldOut, unpriced: unpriced, ambiguous: ambiguous,
+        variants: list.length,
+        ok: !bad && !soldOut && !unpriced && !ambiguous,
+        valid: Math.max(p.minQty, Math.ceil(qty / p.increment) * p.increment)
+      };
+    }
+
+    /* ---------- render ---------- */
+    main.innerHTML = '' +
+    '<p class="eyebrow">Quick order</p>' +
+    '<h1>Order by SKU</h1>' +
+    '<p class="lede" style="font-size:.92rem">Two doors into the same draft. Paste a list or ' +
+    'upload a CSV; everything lands in an editable draft you can still change. Nothing is ' +
+    'submitted from this screen.</p>' +
+
+    '<div class="doors">' +
+      '<div class="panel"><div class="panel-hd"><h2>Door A — paste a list</h2>' +
+        '<span class="sub spacer">Resolves as you type</span></div>' +
+        '<div class="panel-bd">' +
+          '<p class="hint">One SKU per line. Separate SKU and quantity with a comma, a space ' +
+          'or a tab. Repeat a SKU and the quantities are summed. Omit the quantity and we ' +
+          'assume one case.</p>' +
+          '<div class="field">' +
+            '<label for="paste">SKU and quantity</label>' +
+            '<textarea class="input" id="paste" spellcheck="false" autocomplete="off" ' +
+              'placeholder="ACC-108-1, 8&#10;RAV-V2-GBX-ETG 12"></textarea>' +
+          '</div>' +
+          '<div class="actions">' +
+            '<button type="button" class="btn btn-ghost btn-sm" id="exBtn">Load worked example</button>' +
+            '<button type="button" class="linkish" id="exTypo">Example with typos</button>' +
+            '<button type="button" class="linkish" id="clearBtn">Clear</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="panel"><div class="panel-hd"><h2>Door B — CSV upload</h2>' +
+        '<span class="sub spacer">Max ' + MAX_ROWS + ' rows</span></div>' +
+        '<div class="panel-bd">' +
+          '<div class="drop" id="drop">' +
+            '<label class="sr-only" for="csv">Choose a CSV file</label>' +
+            '<input type="file" id="csv" accept=".csv,text/csv">' +
+            '<p>Headers must be <span class="mono">SKU,QTY</span>. Rows are appended to the ' +
+            'paste box above, so you can still edit them.</p>' +
+          '</div>' +
+          '<div class="actions">' +
+            '<a class="btn btn-ghost btn-sm" id="tplLink" download="fieldstock-quick-order-template.csv" href="#">Download template</a>' +
+          '</div>' +
+          '<p class="hint" style="margin:.7rem 0 0">Downloads are blocked inside some embedded ' +
+          'viewers. The template is printed below — copy it if the link does nothing.</p>' +
+          '<pre class="tpl" id="tplText"></pre>' +
+          '<div class="logwrap"><h3 id="logHd">Import log</h3>' +
+          '<ul class="log" id="csvLog" role="status" aria-live="polite" ' +
+          'aria-labelledby="logHd"></ul></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="panel" style="margin-top:1rem"><div class="panel-hd"><h2>Draft order</h2>' +
+      '<span class="sub" id="draftCount">0 lines</span>' +
+      '<span class="sub spacer">Editable — not submitted</span></div>' +
+      '<div class="table-scroll" id="draftWrap"></div>' +
+      '<div class="sumbar">' +
+        '<button class="btn" type="button" id="addAll">Add all to draft order</button>' +
+        '<button class="btn btn-ghost btn-sm" type="button" id="roundAll">Round all up to case</button>' +
+        '<span class="said" id="said" role="status" aria-live="polite">Paste a list to begin.</span>' +
+        '<span class="total"><span id="grandLbl">Draft total</span><span id="grand">—</span></span>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="panel" id="failPanel" hidden><div class="panel-hd"><h2>Resolve failures</h2>' +
+      '<span class="sub" id="failCount"></span></div>' +
+      '<div id="failList"></div>' +
+    '</div>' +
+
+    '<p class="disclaim">Static demonstration. Quantities, price breaks and stock states are ' +
+    'modelled from the catalog file; no order is transmitted and no stock is reserved.</p>';
+
+    var ta        = document.getElementById('paste');
+    var draftWrap = document.getElementById('draftWrap');
+    var said      = document.getElementById('said');
+    var grand     = document.getElementById('grand');
+    var grandLbl  = document.getElementById('grandLbl');
+    var draftCount= document.getElementById('draftCount');
+    var failPanel = document.getElementById('failPanel');
+    var failList  = document.getElementById('failList');
+    var failCount = document.getElementById('failCount');
+    var addAll    = document.getElementById('addAll');
+    var roundAll  = document.getElementById('roundAll');
+    var csvLogEl  = document.getElementById('csvLog');
+
+    /* ---------- CSV template ----------
+       index[s] was dereferenced unguarded. Every EX_OK SKU resolves against the
+       current products.json, but one catalog edit would have thrown a TypeError
+       here and taken the whole screen down, gate and all. */
+    var tplRows = EX_OK.filter(function (s) { return index[s]; }).map(function (s, i) {
+      return s + ',' + (index[s][0].increment * (i + 1));
+    });
+    var tplText = 'SKU,QTY\n' + (tplRows.length ? tplRows.join('\n') + '\n' : '');
+    document.getElementById('tplText').textContent = tplText;
+    try {
+      var url = URL.createObjectURL(new Blob([tplText], { type: 'text/csv' }));
+      document.getElementById('tplLink').href = url;
+    } catch (e) {
+      document.getElementById('tplLink').removeAttribute('download');
+      document.getElementById('tplLink').setAttribute('aria-disabled', 'true');
+    }
+
+    /* ---------- sync ---------- */
+    function writeBack() {
+      ta.value = draft.map(function (e) {
+        return e.sku + ',' + (e.qty === null ? '' : e.qty);
+      }).join('\n');
+    }
+    function reparse() {
+      var r = parseText(ta.value);
+      var next = collapse(r.rows);
+      // carry variant choices across a re-parse
+      var prev = {};
+      draft.forEach(function (e) { if (e.chosen) prev[e.sku] = e.chosen; });
+      next.forEach(function (e) { if (prev[e.sku]) e.chosen = prev[e.sku]; });
+      if (next.length > MAX_ROWS) {
+        r.errs.push('Paste box holds ' + next.length + ' distinct SKUs — capped at ' +
+                    MAX_ROWS + '. Later lines were dropped.');
+        next = next.slice(0, MAX_ROWS);
+      }
+      draft = next;
+      pasteErrs = r.errs;
+      drawLog();
+      render();
+    }
+    var t = null;
+    ta.addEventListener('input', function () {
+      clearTimeout(t);
+      t = setTimeout(reparse, 300);   // 300ms debounce
+    });
+
+    /* slice(-12) kept the LAST twelve, which threw away the summary line that
+       ingestCSV unshifts to the front and the earliest row errors with it. */
+    function drawLog() {
+      var all_ = csvLog.concat(pasteErrs);
+      var shown = all_.slice(0, 12);
+      var rest = all_.length - shown.length;
+      csvLogEl.innerHTML = shown.map(function (m) {
+        return '<li>' + (/dropped|invalid|missing|capped|cannot|not a catalog/i.test(m)
+          ? '<b>' + esc(m) + '</b>' : esc(m)) + '</li>';
+      }).join('') + (rest > 0 ? '<li>' + rest + ' further message' +
+        (rest === 1 ? '' : 's') + ' not shown.</li>' : '');
+    }
+
+    /* ---------- draft table ---------- */
+    function render() {
+      /* The whole table is replaced on every change, which destroyed whatever the
+         user was focused on — a number input's stepper fires `change` on each
+         click, so the second click landed on nothing. Remember the focused id and
+         put the caret back. */
+      var focusId = document.activeElement && draftWrap.contains(document.activeElement)
+        ? document.activeElement.id : null;
+
+      // idx is the position in `draft`, not in the filtered view — every data-*
+      // hook below addresses the draft directly so unmatched rows cannot shift it.
+      var evals = draft.map(function (e, i) { var v = evaluate(e); v.idx = i; return v; });
+      var hits  = evals.filter(function (v) { return v.p; });
+      var miss  = evals.filter(function (v) { return !v.p; });
+
+      draftCount.textContent = hits.length + (hits.length === 1 ? ' line' : ' lines') +
+        (miss.length ? ' · ' + miss.length + ' unmatched' : '');
+
+      if (!hits.length) {
+        draftWrap.innerHTML = '<p class="empty">No resolved lines yet. Paste SKUs above, ' +
+          'upload a CSV, or load the worked example.</p>';
+      } else {
+        draftWrap.innerHTML =
+        '<table class="data"><caption class="sr-only">Draft order lines</caption><thead><tr>' +
+          '<th scope="col">SKU</th><th scope="col">Product</th>' +
+          '<th scope="col" class="n">Qty</th><th scope="col" class="n">Your net</th>' +
+          '<th scope="col">Stock</th><th scope="col" class="n">Line total</th>' +
+          '<th scope="col"><span class="sr-only">Remove</span></th>' +
+        '</tr></thead><tbody>' +
+        hits.map(function (v) {
+          var i = v.idx, p = v.p, list = index[v.e.sku];
+          var note = '';
+          if (v.ambiguous) note = '<span class="why badc">' + list.length +
+            ' catalog records share this SKU — choose one before it can be added</span>';
+          else if (v.unpriced) note = '<span class="why badc">No dealer price on file — ' +
+            'ask your rep to quote this line</span>';
+          else if (v.soldOut) note = '<span class="why badc">Sold out — skipped when you add</span>';
+          else if (v.bad === 'below-min') note = '<span class="why warnc">Below minimum of ' +
+            p.minQty + '</span>';
+          else if (v.bad === 'not-multiple') note = '<span class="why warnc">Not a multiple of the ' +
+            p.increment + '-unit case</span>';
+          else if (v.e.assumed) note = '<span class="why okc">Quantity assumed: one case</span>';
+          else if (v.e.merged > 1) note = '<span class="why okc">' + v.e.merged +
+            ' lines summed</span>';
+
+          var picker = list.length > 1
+            ? '<select class="varsel" data-pick="' + i + '" aria-label="Choose which product ' +
+              esc(v.e.sku) + ' refers to">' +
+              '<option value=""' + (v.e.chosen ? '' : ' selected') + '>Choose a product…</option>' +
+              list.map(function (o) {
+                return '<option value="' + esc(o.id) + '"' +
+                  (v.e.chosen && o.id === p.id ? ' selected' : '') + '>' + esc(o.name) + '</option>';
+              }).join('') + '</select>'
+            : '';
+
+          var nameCell = v.ambiguous
+            ? '<span class="why badc" style="font-family:inherit;font-size:.86rem">' +
+              esc(v.e.sku) + ' is ambiguous</span>'
+            : '<a href="product.html?id=' + encodeURIComponent(p.slug) + '">' + esc(p.name) + '</a>';
+
+          return '<tr>' +
+            '<td class="mono" style="font-size:.76rem">' + esc(v.e.sku) + '</td>' +
+            '<td>' + nameCell + picker + note + '</td>' +
+            '<td class="n"><label class="sr-only" for="q' + i + '">Quantity for ' + esc(p.sku) +
+              '</label><input class="qin' + (v.bad ? ' bad' : '') + '" id="q' + i + '" ' +
+              'type="number" min="' + p.minQty + '" step="' + p.increment + '" value="' + v.qty +
+              '" data-qty="' + i + '" inputmode="numeric">' +
+              (v.bad ? '<br><button type="button" class="roundbtn" data-round="' + i +
+                '" aria-label="Round ' + esc(p.sku) + ' up to ' + v.valid +
+                ', the nearest valid case multiple">Round to ' + v.valid + '</button>' : '') + '</td>' +
+            '<td class="n">' + (v.ambiguous || v.unpriced ? '—' : FS.usd(v.unit)) + '</td>' +
+            '<td>' + (v.ambiguous ? '—' : FS.stockPill(p)) + '</td>' +
+            '<td class="n">' + (v.ambiguous || v.unpriced ? '—' : FS.usd(v.ext)) + '</td>' +
+            '<td class="n"><button type="button" class="xbtn" data-del="' + i +
+              '" aria-label="Remove ' + esc(p.sku) + ' from the draft">&times;</button></td>' +
+          '</tr>';
+        }).join('') +
+        '</tbody></table>';
+      }
+
+      if (focusId) {
+        var back = document.getElementById(focusId);
+        if (back) {
+          back.focus();
+          if (back.select) { try { back.select(); } catch (e) {} }
+        }
+      }
+
+      /* failures */
+      if (miss.length) {
+        failPanel.hidden = false;
+        failCount.textContent = miss.length + ' unmatched';
+        failList.innerHTML = miss.map(function (v) {
+          var sug = suggest(v.e.sku);
+          return '<div class="fail">' +
+            '<div class="badsku">' + esc(v.e.sku) + '</div>' +
+            '<div class="sugs">' + (sug.length
+              ? '<span>Did you mean</span>' + sug.map(function (s) {
+                  return '<button type="button" class="sug" data-fix="' + esc(v.e.sku) +
+                    '" data-to="' + esc(s.s) + '" aria-label="Replace ' + esc(v.e.sku) +
+                    ' with ' + esc(s.s) + '">' + esc(s.s) + '</button>';
+                }).join('')
+              : '<span>No close match in the catalog. Check the packing list or ask your rep.</span>') +
+            '</div></div>';
+        }).join('');
+      } else {
+        failPanel.hidden = true;
+        failList.innerHTML = '';
+      }
+
+      /* totals + gating.
+         Sold-out lines used to set addAll.disabled, which contradicted their own
+         row note ("will not be added" implies skipped, not blocking) and left the
+         user with no action but deletion. Only a bad quantity — something the
+         round-up button can actually fix — blocks the add now. */
+      var addable = hits.filter(function (v) { return v.ok; });
+      var badQty  = hits.filter(function (v) { return v.bad && !v.ambiguous; }).length;
+      var ambig   = hits.filter(function (v) { return v.ambiguous; }).length;
+      /* Skipped, not blocking: nothing on this screen can fix a sold-out or an
+         unpriced line, so blocking on them would leave the user with deletion as
+         the only move. Ambiguity and a bad quantity ARE fixable here, so those
+         two block — the alternative is guessing on the dealer's behalf. */
+      var dead    = hits.filter(function (v) {
+        return !v.bad && !v.ambiguous && (v.soldOut || v.unpriced);
+      }).length;
+      /* The total only ever counted addable lines, so with a skipped row on
+         screen the visible line totals summed to more than the figure in the
+         footer with nothing saying why. Name the denominator. */
+      var total = addable.reduce(function (s, v) { return s + v.ext; }, 0);
+      grand.textContent = addable.length ? FS.usd(total) : '—';
+      grandLbl.textContent = addable.length && addable.length < hits.length
+        ? 'Draft total, ' + addable.length + ' of ' + hits.length + ' lines'
+        : 'Draft total';
+
+      addAll.disabled = !addable.length || badQty > 0 || ambig > 0;
+      addAll.textContent = 'Add all to draft order';
+      roundAll.disabled = !badQty;
+
+      if (!hits.length && !miss.length) {
+        said.textContent = 'Paste a list to begin.';
+      } else if (ambig > 0) {
+        said.innerHTML = '<b>' + ambig + ' SKU' + (ambig === 1 ? '' : 's') +
+          ' cannot be added</b> — more than one catalog record shares ' +
+          (ambig === 1 ? 'it' : 'them') + '. Pick the product you meant.';
+      } else if (badQty > 0) {
+        said.innerHTML = '<b>' + badQty + ' line' + (badQty === 1 ? '' : 's') +
+          ' cannot be added</b> — the quantity is not a valid case multiple. ' +
+          'Round it up or edit it.';
+      } else if (dead > 0) {
+        said.innerHTML = addable.length + ' line' + (addable.length === 1 ? '' : 's') +
+          ' ready. ' + dead + ' line' + (dead === 1 ? ' is' : 's are') +
+          ' skipped as sold out or unpriced.';
+      } else if (miss.length) {
+        said.innerHTML = addable.length + ' line' + (addable.length === 1 ? '' : 's') +
+          ' ready. ' + miss.length + ' SKU' + (miss.length === 1 ? '' : 's') +
+          ' still unmatched below.';
+      } else {
+        said.textContent = addable.length + ' line' + (addable.length === 1 ? '' : 's') +
+          ' ready to add.';
+      }
+    }
+
+    /* ---------- table interactions ---------- */
+    draftWrap.addEventListener('change', function (ev) {
+      var el = ev.target;
+      if (el.dataset.qty !== undefined) {
+        var i = +el.dataset.qty, n = parseInt(el.value, 10);
+        if (!isFinite(n) || n <= 0) { render(); return; }
+        draft[i].qty = n; draft[i].assumed = false; draft[i].merged = 1;
+        writeBack(); render();
+      } else if (el.dataset.pick !== undefined) {
+        // '' is the "Choose a product…" placeholder — keep it unresolved.
+        draft[+el.dataset.pick].chosen = el.value || null;
+        render();
+      }
+    });
+    draftWrap.addEventListener('click', function (ev) {
+      var el = ev.target.closest ? ev.target.closest('button') : null;
+      if (!el) return;
+      if (el.dataset.round !== undefined) {
+        var ri = +el.dataset.round;
+        var v = evaluate(draft[ri]);
+        draft[ri].qty = v.valid;
+        draft[ri].assumed = false;
+        writeBack(); render();
+        // The round button removes itself, so hand focus to the quantity it fixed.
+        var qEl = document.getElementById('q' + ri);
+        if (qEl) qEl.focus();
+      } else if (el.dataset.del !== undefined) {
+        draft.splice(+el.dataset.del, 1);
+        writeBack(); render();
+      }
+    });
+    failList.addEventListener('click', function (ev) {
+      var el = ev.target.closest ? ev.target.closest('button.sug') : null;
+      if (!el) return;
+      var from = el.dataset.fix, to = el.dataset.to;
+      draft.forEach(function (e) { if (e.sku === from) e.sku = to; });
+      draft = collapse(draft.map(function (e) {
+        return { sku: e.sku, qty: e.qty, assumed: e.assumed };
+      }));
+      writeBack(); render();
+    });
+    roundAll.addEventListener('click', function () {
+      draft.forEach(function (e) {
+        var v = evaluate(e);
+        if (v.p && v.bad) { e.qty = v.valid; e.assumed = false; }
+      });
+      writeBack(); render();
+    });
+
+    /* ---------- add to the real cart ---------- */
+    addAll.addEventListener('click', function () {
+      var addable = draft.map(evaluate).filter(function (v) { return v.ok; });
+      if (!addable.length) return;
+      addable.forEach(function (v) { FS.addToCart(v.p.id, v.qty); });
+      /* FS.addToCart increments an existing row, so clicking twice doubled every
+         line into the cart with no feedback. Latch until the draft changes. */
+      addAll.disabled = true;
+      addAll.textContent = 'Added';
+      said.innerHTML = addable.length + ' line' + (addable.length === 1 ? '' : 's') +
+        ' added to the draft cart. <a href="cart.html">Open cart</a> — still editable there. ' +
+        'Change the list above to add again.';
+      FS.mountChrome('portal');
+    });
+
+    /* ---------- examples ---------- */
+    document.getElementById('exBtn').addEventListener('click', function () {
+      ta.value = EXAMPLE; reparse(); ta.focus();
+    });
+    document.getElementById('exTypo').addEventListener('click', function () {
+      ta.value = EXAMPLE_TYPO; reparse();
+    });
+    document.getElementById('clearBtn').addEventListener('click', function () {
+      ta.value = ''; csvLog = []; drawLog(); reparse();
+    });
+
+    /* ---------- CSV ---------- */
+    function ingestCSV(text, name) {
+      csvLog = [];
+      var lines = text.split(/\r?\n/).filter(function (l) { return l.trim() !== ''; });
+      if (!lines.length) { csvLog.push(name + ': file is empty.'); drawLog(); return; }
+
+      var head = lines[0].split(',').map(function (c) { return c.trim().toLowerCase(); });
+      var iSku = head.indexOf('sku'), iQty = head.indexOf('qty');
+      if (iQty < 0) iQty = head.indexOf('quantity');
+      if (iSku < 0 || iQty < 0) {
+        csvLog.push(name + ': header must be SKU,QTY — found "' + lines[0].slice(0, 60) +
+                    '". Nothing imported.');
+        drawLog(); return;
+      }
+
+      var body = lines.slice(1), accepted = [], dropped = 0;
+      if (body.length > MAX_ROWS) {
+        csvLog.push(name + ': ' + body.length + ' data rows — capped at ' + MAX_ROWS +
+                    '. Rows ' + (MAX_ROWS + 1) + '+ were dropped.');
+        body = body.slice(0, MAX_ROWS);
+      }
+      body.forEach(function (row, i) {
+        var n = i + 2;                                   // 1-based, header is row 1
+        var cells = row.split(',').map(function (c) { return c.trim().replace(/^"|"$/g, ''); });
+        var sku = (cells[iSku] || '').toUpperCase();
+        var qraw = cells[iQty];
+        if (!sku) { csvLog.push('Row ' + n + ': SKU cell is empty — dropped.'); dropped++; return; }
+        if (qraw === undefined || qraw === '') {
+          csvLog.push('Row ' + n + ' (' + sku + '): quantity missing — one case assumed.');
+          accepted.push(sku + ','); return;
+        }
+        if (!/^\d+$/.test(qraw)) {
+          csvLog.push('Row ' + n + ' (' + sku + '): quantity "' + qraw +
+                      '" is not a whole number — dropped.');
+          dropped++; return;
+        }
+        var q = parseInt(qraw, 10);
+        if (q <= 0) { csvLog.push('Row ' + n + ' (' + sku + '): quantity must be 1 or more — dropped.'); dropped++; return; }
+        if (!index[sku]) csvLog.push('Row ' + n + ': ' + sku + ' is not a catalog SKU — sent to resolve failures.');
+        accepted.push(sku + ',' + q);
+      });
+
+      if (!accepted.length) {
+        csvLog.push(name + ': no usable rows (' + dropped + ' dropped).');
+        drawLog(); return;
+      }
+      ta.value = (ta.value.trim() ? ta.value.replace(/\s+$/, '') + '\n' : '') + accepted.join('\n');
+      csvLog.unshift(name + ': ' + accepted.length + ' row' + (accepted.length === 1 ? '' : 's') +
+                     ' appended to the paste box' + (dropped ? ', ' + dropped + ' dropped' : '') + '.');
+      drawLog();
+      reparse();
+    }
+
+    var fileEl = document.getElementById('csv');
+    fileEl.addEventListener('change', function () {
+      var f = fileEl.files && fileEl.files[0];
+      if (!f) return;
+      var rd = new FileReader();
+      rd.onload = function () { ingestCSV(String(rd.result), f.name); };
+      rd.onerror = function () { csvLog = [f.name + ': could not be read.']; drawLog(); };
+      rd.readAsText(f);
+    });
+
+    var drop = document.getElementById('drop');
+    ['dragenter', 'dragover'].forEach(function (t2) {
+      drop.addEventListener(t2, function (e) { e.preventDefault(); drop.classList.add('hot'); });
+    });
+    ['dragleave', 'drop'].forEach(function (t2) {
+      drop.addEventListener(t2, function (e) { e.preventDefault(); drop.classList.remove('hot'); });
+    });
+    drop.addEventListener('drop', function (e) {
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (!f) return;
+      var rd = new FileReader();
+      rd.onload = function () { ingestCSV(String(rd.result), f.name); };
+      rd.readAsText(f);
+    });
+
+    render();
+    FS.mountChrome('portal');
+    FS.revealOnScroll();
+  }).catch(function (err) {
+    main.innerHTML = '<div class="panel"><div class="panel-hd"><h2>Catalog unavailable</h2></div>' +
+      '<div class="panel-bd"><p>The product file did not load, so SKUs cannot be resolved. ' +
+      'Reload the page or contact your rep.</p></div></div>';
+    FS.mountChrome('portal');
+    if (window.console) console.error(err);
+  });
+})();
+</script>
+</body></html>

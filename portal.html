@@ -1,0 +1,473 @@
+<!doctype html><html lang="en" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dealer portal · Fieldstock Supply Co.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  /* Portal-only layout. No token is redefined here and no second hue is used. */
+  .portal { padding-block: 1.6rem 4rem; }
+  .portal h1 { font-size: clamp(1.6rem, 2.6vw, 2.1rem); }
+
+  .panel {
+    background: var(--surface-1);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r);
+  }
+  .panel + .panel { margin-top: 1rem; }
+  .panel-hd {
+    display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+    padding: .7rem .9rem; border-bottom: 1px solid var(--hairline);
+  }
+  .panel-hd h2 {
+    font-size: .82rem; letter-spacing: .1em;
+    font-variation-settings: 'wdth' 84, 'wght' 700;
+  }
+  .panel-hd .sub {
+    font-family: var(--font-mono); font-size: .66rem; letter-spacing: .08em;
+    color: var(--text-mute); text-transform: uppercase;
+  }
+  .panel-hd .spacer { margin-left: auto; }
+  .panel-bd { padding: .9rem; }
+  .panel-bd.flush { padding: 0; }
+
+  /* account bar */
+  .acct { display: grid; gap: 1px; background: var(--hairline);
+          grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .acct > div { background: var(--surface-1); padding: .8rem .9rem; }
+  .k { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .14em;
+       text-transform: uppercase; color: var(--text-mute); display: block; margin-bottom: .28rem; }
+  .v { font-size: .95rem; font-weight: 500; }
+  .v.mono { font-size: .9rem; }
+  .v a { text-decoration: underline; text-underline-offset: 2px; }
+  .v a:hover { color: var(--orange-ink); }
+  .acct .foot { font-size: .68rem; color: var(--text-mute); margin-top: .3rem; }
+
+  .tierbadge {
+    display: inline-block; font-family: var(--font-mono); font-size: .66rem;
+    letter-spacing: .1em; text-transform: uppercase; font-weight: 500;
+    background: var(--orange); color: var(--on-orange);
+    padding: .22rem .55rem; border-radius: var(--r);
+  }
+
+  /* credit strip */
+  .strip { display: grid; gap: 1px; background: var(--hairline);
+           grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); }
+  .strip > div { background: var(--surface-1); padding: .8rem .9rem; }
+  .strip .amt {
+    font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+    font-size: 1.18rem; line-height: 1.2; letter-spacing: -.01em;
+  }
+  .strip .foot { font-size: .68rem; color: var(--text-mute); margin-top: .2rem; }
+  /* Track was --surface-2, which is #FFFFFF in the light theme — an invisible
+     meter on a white panel. The hairline is the only value that reads. */
+  .meter { height: 4px; background: var(--hairline); border-radius: 2px;
+           overflow: hidden; margin-top: .5rem; }
+  .meter > i { display: block; height: 100%; background: var(--orange); }
+
+  /* two-column body */
+  .cols { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+          align-items: start; margin-top: 1rem; }
+  @media (max-width: 980px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+
+  /* reorder rail */
+  .line { display: grid; grid-template-columns: 56px minmax(0,1fr) auto;
+          gap: .8rem; align-items: center; padding: .65rem .9rem;
+          border-bottom: 1px solid var(--hairline); }
+  .line:last-of-type { border-bottom: 0; }
+  .thumb { width: 56px; height: 44px; object-fit: contain;
+           background: var(--surface-2); border: 1px solid var(--hairline); border-radius: var(--r); }
+  .line-name { font-size: .86rem; font-weight: 500; line-height: 1.25; }
+  .line-name a { text-decoration: underline; text-underline-offset: 2px;
+                 text-decoration-color: var(--hairline-lit); }
+  .line-name a:hover { color: var(--orange-ink); text-decoration-color: currentColor; }
+  .line-meta { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .06em;
+               color: var(--text-mute); display: flex; gap: .7rem; flex-wrap: wrap; margin-top: .2rem; }
+  .line-amt { text-align: right; font-family: var(--font-mono);
+              font-variant-numeric: tabular-nums; font-size: .88rem; white-space: nowrap; }
+  .line-amt small { display: block; font-size: .64rem; color: var(--text-mute); letter-spacing: .06em; }
+  .line.dead .line-name, .line.dead .line-amt { color: var(--text-mute); }
+  .line.dead .thumb { opacity: .5; }
+
+  .barfoot { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap;
+             padding: .8rem .9rem; border-top: 1px solid var(--hairline); }
+  .barfoot .total { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+                    font-size: .95rem; margin-left: auto; }
+  .barfoot .total span { color: var(--text-mute); font-size: .68rem;
+                         letter-spacing: .1em; text-transform: uppercase; margin-right: .5rem; }
+  .said { font-size: .78rem; color: var(--text-2); }
+  .said a { color: var(--orange-ink); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* alerts */
+  .alert { display: grid; grid-template-columns: auto minmax(0,1fr); gap: .7rem;
+           padding: .75rem .9rem; border-bottom: 1px solid var(--hairline); }
+  .alert:last-child { border-bottom: 0; }
+  .alert .dot { width: 7px; height: 7px; border-radius: 50%; margin-top: .45rem; }
+  .alert .dot.stock { background: var(--stock); }
+  .alert .dot.eta { background: var(--coyote); }
+  .alert .dot.price { background: var(--orange); }
+  .alert h3 { font-family: var(--font-mono); font-size: .64rem; letter-spacing: .14em;
+              color: var(--text-mute); font-variation-settings: normal; font-weight: 500;
+              margin-bottom: .25rem; }
+  .alert p { font-size: .82rem; margin: 0; line-height: 1.4; }
+  .alert p a { text-decoration: underline; text-underline-offset: 2px; }
+  .alert p a:hover { color: var(--orange-ink); }
+  .alert .when { font-family: var(--font-mono); font-size: .64rem; color: var(--text-mute); }
+
+  /* quick links */
+  .qlinks { display: grid; gap: 1px; background: var(--hairline); }
+  .qlinks a { background: var(--surface-1); padding: .8rem .9rem; display: block;
+              transition: background var(--t-fast); }
+  .qlinks a:hover { background: var(--orange-wash); }
+  .qlinks strong { display: block; font-family: var(--font-display);
+                   font-variation-settings: 'wdth' 84, 'wght' 700; text-transform: uppercase;
+                   font-size: .82rem; letter-spacing: .04em; }
+  .qlinks span { font-size: .76rem; color: var(--text-2); }
+
+  /* Table links had no underline and no colour, so they were indistinguishable
+     from the surrounding cell text. */
+  table.data td a { text-decoration: underline; text-underline-offset: 2px;
+                    text-decoration-color: var(--hairline-lit); }
+  table.data td a:hover { color: var(--orange-ink); text-decoration-color: currentColor; }
+
+  .gate { max-width: 520px; margin: 4rem auto; text-align: left; }
+  .gate .panel-bd p { font-size: .9rem; color: var(--text-2); }
+
+  .skel { color: var(--text-mute); font-family: var(--font-mono); font-size: .74rem;
+          letter-spacing: .1em; text-transform: uppercase; padding: 1rem .9rem; }
+  .disclaim { font-size: .72rem; color: var(--text-mute); margin-top: 1.4rem; }
+
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+             overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+</style>
+</head><body>
+<div id="chrome-header"></div>
+
+<main class="wrap portal" id="portalMain">
+  <p class="skel" id="boot">Loading account…</p>
+</main>
+
+<div id="chrome-footer"></div>
+<script src="assets/js/store.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var main = document.getElementById('portalMain');
+
+  /* Same FNV-1a the store uses, so every derived figure is stable across
+     reloads instead of reshuffling on each visit. */
+  function hash(s) {
+    var h = 2166136261, i;
+    for (i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h >>> 0) / 4294967295;
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  /* Local formatting on purpose. toISOString() converts to UTC first, so east of
+     Greenwich a local-midnight Date lands on the previous calendar day and every
+     date on the page slid back by one. */
+  function dateStr(daysAgo) {
+    var d = new Date(2026, 7, 13);
+    d.setDate(d.getDate() - daysAgo);
+    var m = d.getMonth() + 1, day = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (day < 10 ? '0' + day : day);
+  }
+
+  function gate() {
+    main.innerHTML =
+      '<div class="gate panel">' +
+        '<div class="panel-hd"><h2>Sign in to continue</h2></div>' +
+        '<div class="panel-bd">' +
+          '<p>The dealer portal shows your account terms, your order history and your ' +
+          'net pricing. None of it is visible without an approved dealer login.</p>' +
+          '<p style="display:flex;gap:.6rem;flex-wrap:wrap;margin:0">' +
+            '<a class="btn" href="login.html">Dealer sign in</a>' +
+            '<a class="btn btn-ghost" href="apply.html">Apply for an account</a>' +
+          '</p>' +
+        '</div>' +
+      '</div>';
+    FS.mountChrome('portal');
+    FS.revealOnScroll();
+  }
+
+  if (!FS.user()) { gate(); return; }
+
+  FS.products().then(function (all) {
+    var u = FS.user();
+
+    /* Only products with a real price, a real image and an unambiguous SKU are
+       eligible to stand in for order history. Nothing here is invented: every
+       name, SKU, price and stock state comes out of products.json.
+
+       The POSTER exclusion is not cosmetic. A handful of scraped rows carry the
+       vendor's poster-image filename in the SKU field (SRS-POSTER on a CAD 630
+       bolt-action, MLR-POSTER-2-1 shared across five different carbines). Those
+       are source-data artifacts, and putting one at the top of a dealer's
+       twelve-month volume table reads as a broken catalog. */
+    var skuCount = {};
+    all.forEach(function (p) { skuCount[p.sku] = (skuCount[p.sku] || 0) + 1; });
+    var pool = all.filter(function (p) {
+      return p.msrp_usd > 0 && p.img && p.img.thumb && skuCount[p.sku] === 1 &&
+             !/POSTER/i.test(p.sku);
+    });
+
+    if (pool.length < 8) {
+      main.innerHTML = '<div class="panel"><div class="panel-hd"><h2>Account history unavailable</h2></div>' +
+        '<div class="panel-bd"><p>The catalog file resolved ' + pool.length + ' priced SKUs, ' +
+        'which is not enough to render order history. Contact your rep.</p></div></div>';
+      FS.mountChrome('portal');
+      return;
+    }
+
+    function pick(salt, n) {
+      return pool.slice().sort(function (a, b) {
+        return hash(a.sku + salt) - hash(b.sku + salt);
+      }).slice(0, n);
+    }
+    function orderQty(p) {
+      return p.increment * (1 + Math.floor(hash(p.sku + '|q') * 4));
+    }
+    function volQty(p) {
+      // Big-ticket SKUs move in smaller unit counts than consumables.
+      var band = p.msrp_usd >= 150 ? 5 : 26;
+      return p.increment * (2 + Math.floor(hash(p.sku + '|v') * band));
+    }
+
+    var last = pick('|last-order', 5);
+    var top  = pick('|t12', 8);
+
+    /* ---------- account + credit ---------- */
+    var avail = u.creditLimit - u.balance;
+    var used  = Math.max(0, Math.min(1, u.balance / u.creditLimit));
+    // Deterministic, derived from the balance on the account record.
+    var seed = hash(u.email + '|ar');
+    var openInv = 2 + Math.floor(seed * 4);
+    var overdue = seed > 0.62 ? 1 : 0;
+
+    var orderNo = 'FS-' + String(100000 + Math.floor(hash(u.email + '|so') * 899999));
+    var orderDate = dateStr(11 + Math.floor(hash(u.email + '|sd') * 20));
+
+    var lastRows = last.map(function (p) {
+      var q = orderQty(p);
+      var unit = FS.netPrice(p, q);
+      return { p: p, qty: q, unit: unit, ext: unit * q, live: p.stock !== 'out' };
+    });
+    var lastTotal = lastRows.reduce(function (s, r) { return s + r.ext; }, 0);
+    var loadable = lastRows.filter(function (r) { return r.live; });
+    var lastCount = { in: 0, back: 0, out: 0 };
+    lastRows.forEach(function (r) { lastCount[r.p.stock] = (lastCount[r.p.stock] || 0) + 1; });
+
+    var topRows = top.map(function (p) {
+      var q = volQty(p);
+      var unit = FS.netPrice(p, q);
+      return { p: p, qty: q, unit: unit, ext: unit * q };
+    }).sort(function (a, b) { return b.ext - a.ext; });
+    var topTotal = topRows.reduce(function (s, r) { return s + r.ext; }, 0);
+
+    /* ---------- alerts on real SKUs ---------- */
+    var backIn = pool.filter(function (p) { return p.stock === 'in' && p.onHand > 20; })[0];
+    var onWater = pool.filter(function (p) { return p.stock === 'back'; })[0];
+    /* The tier a line clears is a function of that line's quantity, not of the
+       account record. u.tierName is the account floor and is NOT the tier a
+       case-quantity line prices at — reading it out here stated the wrong tier
+       next to a real number. FS.tierFor is what the PDP and cart use. */
+    var priceSku = topRows[0].p;
+    var priceBreak = FS.nextBreak(priceSku, priceSku.increment);
+
+    /* ---------- render ---------- */
+    function money(n) { return FS.usd(n); }
+
+    function lineHTML(r) {
+      var p = r.p;
+      return '' +
+      '<div class="line' + (r.live ? '' : ' dead') + '">' +
+        '<img class="thumb" src="' + esc(p.img.thumb) + '" alt="" width="56" height="44" loading="lazy">' +
+        '<div>' +
+          '<div class="line-name"><a href="product.html?id=' + encodeURIComponent(p.slug) + '">' +
+            esc(p.name) + '</a></div>' +
+          '<div class="line-meta"><span>' + esc(p.sku) + '</span><span>Qty ' + r.qty +
+            '</span><span>Case ' + p.casePack + '</span>' + FS.stockPill(p) + '</div>' +
+        '</div>' +
+        '<div class="line-amt">' + money(r.ext) + '<small>' + money(r.unit) + ' / ea</small></div>' +
+      '</div>';
+    }
+
+    main.innerHTML = '' +
+    '<p class="eyebrow">Dealer portal</p>' +
+    '<h1>' + esc(u.company) + '</h1>' +
+    '<p class="lede" style="font-size:.92rem;margin-bottom:1.2rem">Account since ' +
+      esc(u.since) + '. Every figure below is your dealer net at the quantity shown, ' +
+      'never MSRP. Price breaks apply per line, so a larger line can clear a better ' +
+      'tier than your account floor.</p>' +
+
+    '<div class="panel"><div class="panel-hd"><h2>Account</h2>' +
+      '<span class="sub">' + esc(u.email) + '</span></div>' +
+      '<div class="acct">' +
+        '<div><span class="k">Company</span><span class="v">' + esc(u.company) + '</span></div>' +
+        '<div><span class="k">Ship-to location</span><span class="v">' + esc(u.location) + '</span></div>' +
+        '<div><span class="k">Account floor tier</span><span class="v"><span class="tierbadge">' +
+          esc(u.tierName) + '</span></span>' +
+          '<div class="foot">Quantity breaks can improve on this line by line.</div></div>' +
+        '<div><span class="k">Assigned rep</span><span class="v">' + esc(u.rep) + '</span></div>' +
+        '<div><span class="k">Direct line</span><span class="v mono"><a href="tel:' +
+          esc(u.repLine.replace(/[^+\d]/g, '')) + '">' + esc(u.repLine) + '</a></span></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="panel"><div class="panel-hd"><h2>Credit</h2>' +
+      '<span class="sub">Terms ' + esc(u.terms) + '</span>' +
+      '<span class="sub spacer">As of ' + dateStr(0) + '</span></div>' +
+      '<div class="strip">' +
+        '<div><span class="k">Terms</span><span class="amt">' + esc(u.terms) +
+          '</span><div class="foot">Net of invoice date</div></div>' +
+        '<div><span class="k">Credit limit</span><span class="amt">' + money(u.creditLimit) +
+          '</span><div class="foot">Reviewed annually</div></div>' +
+        '<div><span class="k">Current balance</span><span class="amt">' + money(u.balance) +
+          '</span><div class="meter" aria-hidden="true"><i style="width:' +
+          (used * 100).toFixed(1) + '%"></i></div>' +
+          '<div class="foot">' + (used * 100).toFixed(1) + '% of limit drawn</div></div>' +
+        '<div><span class="k">Available credit</span><span class="amt">' + money(avail) +
+          '</span><div class="foot">Applied at checkout</div></div>' +
+        '<div><span class="k">Open invoices</span><span class="amt">' + openInv +
+          '</span><div class="foot">' + (overdue ? overdue + ' past due' : 'None past due') +
+          '</div></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="cols">' +
+      '<div>' +
+        '<div class="panel"><div class="panel-hd"><h2>Your last order</h2>' +
+          '<span class="sub">' + orderNo + ' &middot; ' + orderDate + '</span></div>' +
+          '<div class="panel-bd flush">' + lastRows.map(lineHTML).join('') + '</div>' +
+          '<div class="barfoot">' +
+            '<button class="btn" type="button" id="reorder">Load into cart</button>' +
+            /* "N of 5 still available" counted backordered lines as available.
+               Two of these five are on the water, which is not the same thing. */
+            '<span class="said" id="reorderSaid" role="status" aria-live="polite">' +
+              lastCount.in + ' in stock' +
+              (lastCount.back ? ', ' + lastCount.back + ' on the water' : '') +
+              (lastCount.out ? ', ' + lastCount.out + ' sold out and skipped' : '') +
+            '</span>' +
+            '<span class="total"><span>Order total</span>' + money(lastTotal) + '</span>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="panel"><div class="panel-hd"><h2>Top SKUs</h2>' +
+          '<span class="sub">Trailing 12 months &middot; by extended value</span></div>' +
+          '<div class="table-scroll">' +
+            '<table class="data"><caption class="sr-only">Your highest-volume SKUs over the ' +
+            'trailing twelve months. The break column is the quantity price break each line ' +
+            'clears: Tier 3 from 1 unit, Tier 2 from 10, Tier 1 from 25.</caption>' +
+            '<thead><tr><th scope="col">SKU</th><th scope="col">Product</th>' +
+              '<th scope="col" class="n">T12M qty</th><th scope="col">Break</th>' +
+              '<th scope="col" class="n">Your net</th>' +
+              '<th scope="col" class="n">Extended</th><th scope="col">Stock</th></tr></thead><tbody>' +
+            topRows.map(function (r) {
+              return '<tr><td class="mono" style="font-size:.76rem">' + esc(r.p.sku) + '</td>' +
+                '<td><a href="product.html?id=' + encodeURIComponent(r.p.slug) + '">' +
+                  esc(r.p.name) + '</a></td>' +
+                '<td class="n">' + r.qty + '</td>' +
+                '<td style="font-size:.76rem;color:var(--text-2)">' +
+                  esc(FS.tierFor(r.p, r.qty).name.replace(/^Tier (\d).*$/, 'Tier $1')) + '</td>' +
+                '<td class="n">' + money(r.unit) + '</td>' +
+                '<td class="n">' + money(r.ext) + '</td>' +
+                '<td>' + FS.stockPill(r.p) + '</td></tr>';
+            }).join('') +
+            '</tbody><tfoot><tr><th scope="row" colspan="5" style="text-align:right">Total</th>' +
+              '<td class="n mono">' + money(topTotal) + '</td><td></td></tr></tfoot></table>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div>' +
+        '<div class="panel"><div class="panel-hd"><h2>Alerts</h2>' +
+          '<span class="sub">Your SKUs only</span></div>' +
+          '<div class="panel-bd flush">' +
+            (backIn ? '<div class="alert"><span class="dot stock"></span><div>' +
+              '<h3>Back in stock</h3><p><a href="product.html?id=' + encodeURIComponent(backIn.slug) + '">' +
+              esc(backIn.name) + '</a> — ' + backIn.onHand + ' on hand in Quincy.</p>' +
+              '<span class="when">' + esc(backIn.sku) + ' &middot; ' + dateStr(2) + '</span>' +
+              '</div></div>' : '') +
+            (onWater ? '<div class="alert"><span class="dot eta"></span><div>' +
+              '<h3>Inbound</h3><p><a href="product.html?id=' + encodeURIComponent(onWater.slug) + '">' +
+              esc(onWater.name) + '</a> is on the water, due ' + esc(onWater.eta) + '. ' +
+              'Backorders release in receipt order.</p>' +
+              '<span class="when">' + esc(onWater.sku) + ' &middot; ' + dateStr(5) + '</span>' +
+              '</div></div>' : '') +
+            '<div class="alert"><span class="dot price"></span><div>' +
+              '<h3>Price break</h3><p>On the 2026-08 list your net for ' +
+              '<a href="product.html?id=' + encodeURIComponent(priceSku.slug) + '">' +
+              esc(priceSku.name) + '</a> is ' + money(FS.netPrice(priceSku, priceSku.increment)) +
+              ' per unit at the ' + priceSku.increment + '-unit case (' +
+              esc(FS.tierFor(priceSku, priceSku.increment).name) + ')' +
+              (priceBreak
+                ? ', and ' + money(priceBreak.unit_usd) + ' from ' + priceBreak.min_qty +
+                  ' units (' + esc(priceBreak.name) + ').'
+                : '.') +
+              '</p>' +
+              '<span class="when">' + esc(priceSku.sku) + ' &middot; ' + dateStr(9) + '</span>' +
+              '</div></div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="panel"><div class="panel-hd"><h2>Go to</h2></div>' +
+          '<div class="qlinks">' +
+            '<a href="quick-order.html"><strong>Quick order</strong>' +
+              '<span>Paste a SKU list or upload a CSV</span></a>' +
+            '<a href="catalog.html"><strong>Catalog</strong>' +
+              '<span>' + all.length + ' SKUs, priced at your net</span></a>' +
+            '<a href="compliance.html"><strong>Compliance</strong>' +
+              '<span>Marking tiers and blocked ZIPs</span></a>' +
+            '<a href="cart.html"><strong>Cart</strong>' +
+              '<span>Review the working order</span></a>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<p class="disclaim">Static demonstration account. No live ERP or accounts-receivable ' +
+    'system is connected. Balances, invoice counts, order history, trailing-twelve-month ' +
+    'volumes and the alert dates are all modelled deterministically from the catalog file, ' +
+    'so the flows are honest about their own shape. Product names, SKUs, list prices, price ' +
+    'breaks and stock states are the real catalog records. Compliance summaries elsewhere on ' +
+    'this site are scoping notes, not legal advice.</p>';
+
+    var btn = document.getElementById('reorder');
+    var said = document.getElementById('reorderSaid');
+    if (!loadable.length) { btn.disabled = true; }
+    btn.addEventListener('click', function () {
+      /* FS.addToCart increments an existing row, so a second click silently
+         doubled the order. One load per page view; the cart is where quantities
+         get changed after that. */
+      btn.disabled = true;
+      btn.textContent = 'Loaded';
+      loadable.forEach(function (r) { FS.addToCart(r.p.id, r.qty); });
+      said.innerHTML = loadable.length + ' line' + (loadable.length === 1 ? '' : 's') +
+        ' loaded into the draft cart — still editable there. ' +
+        '<a href="cart.html">Open cart</a>';
+      FS.mountChrome('portal');
+    });
+
+    FS.mountChrome('portal');
+    /* No FS.revealOnScroll() here on purpose. The scroll-reveal left the reorder
+       rail and the top-SKU table at opacity 0 for 750ms after load, and the
+       lower two panels invisible until the dealer scrolled. On a marketing page
+       that is a flourish; on the screen a buyer opens to place a reorder it is
+       the primary data arriving late. The brief for this surface is dense and
+       fast, and the design contract's own rule is that every element earns its
+       place. This one did not. */
+  }).catch(function (err) {
+    main.innerHTML = '<div class="panel"><div class="panel-hd"><h2>Catalog unavailable</h2></div>' +
+      '<div class="panel-bd"><p>The product file did not load, so order history cannot be ' +
+      'rendered. Reload the page or contact your rep.</p></div></div>';
+    FS.mountChrome('portal');
+    if (window.console) console.error(err);
+  });
+})();
+</script>
+</body></html>

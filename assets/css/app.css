@@ -1,0 +1,370 @@
+/* FIELDSTOCK SUPPLY CO. — design system
+   Tokens are measured values from the research pass (American MilSim, Ballahack,
+   Ferro, Krytac, atlas.neuro2.ai). Do not tune them per-page. */
+
+/* ---------- tokens ---------- */
+:root {
+  --ground:        #0D0F0E;
+  --surface-1:     #141816;
+  --surface-2:     #1C211E;
+  --hairline:      #2A302C;
+  --hairline-lit:  #3A423D;
+
+  --text:          #E4E0D9;   /* warm off-white — never #fff for body */
+  --text-2:        #A3A79E;
+  --text-mute:     #737870;
+
+  --orange:        #FF6A00;   /* the only accent */
+  --orange-press:  #C74F00;
+  --orange-wash:   #20160D;
+  /* Same hue, darkened only where orange is used as TEXT. On the dark ground
+     #FF6A00 reads 7.4:1, so ink == accent here. See the light block. */
+  --orange-ink:    #FF6A00;
+
+  --coyote:        #C6984F;   /* backorder only */
+  --olive:         #69644B;   /* quiet chrome only */
+  --stock:         #2F9E5E;
+  --danger:        #D22826;
+
+  /* label on any orange fill — white fails contrast at 2.9:1, this is 6.4:1 */
+  --on-orange:     #141816;
+
+  --font-display: 'Archivo', 'Helvetica Neue', sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  --max:    1320px;
+  --gutter: clamp(20px, 4vw, 56px);
+  --r:      3px;              /* one radius. hard-edged, not bubbly */
+
+  --t-fast: 140ms cubic-bezier(.22,.61,.36,1);
+  --t:      260ms cubic-bezier(.22,.61,.36,1);
+}
+
+/* Dealer portal runs light — a warehouse tool, not a marketing surface. */
+[data-theme="light"] {
+  --ground:       #F5F3EE;
+  --surface-1:    #FFFFFF;
+  --surface-2:    #FFFFFF;
+  --hairline:     #DCD7CC;
+  --hairline-lit: #C6C0B2;
+  --text:         #141816;
+  --text-2:       #4E534D;
+  /* was #8A8F87 — 3.30:1 on white, 2.98:1 on the page ground. Both fail AA for
+     the label/caption sizes this token is used at. #676C64 measures 5.38 / 4.85. */
+  --text-mute:    #676C64;
+  --stock:        #1E7A45;
+  --coyote:       #8A6414;
+  --danger:       #B01F1D;
+  --orange-wash:  #FFF1E4;
+  /* #FF6A00 as text on white is 2.87:1. Fills keep the accent (dark --on-orange
+     label sits on it at 6.2:1); orange TEXT uses this instead — 5.64 / 5.09. */
+  --orange-ink:   #B04600;
+}
+
+/* ---------- reset ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important; scroll-behavior: auto !important;
+  }
+}
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img, svg, video { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+
+/* ---------- type ---------- */
+h1, h2, h3, h4, .display {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 78, 'wght' 700;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .01em;
+  line-height: .98;
+  margin: 0;
+  text-wrap: balance;
+}
+h1 { font-size: clamp(2.6rem, 7vw, 5.4rem); }
+h2 { font-size: clamp(1.9rem, 3.8vw, 3.1rem); }
+h3 { font-size: clamp(1.15rem, 1.7vw, 1.5rem); }
+p  { margin: 0 0 1em; }
+.lede { font-size: clamp(1.02rem, 1.5vw, 1.22rem); color: var(--text-2); max-width: 62ch; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.num  { font-variant-numeric: tabular-nums; }
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin: 0 0 .9rem;
+  display: flex; align-items: center; gap: .7rem;
+}
+.eyebrow::before {
+  content: ''; width: 22px; height: 1px; background: var(--orange); flex: none;
+}
+
+/* ---------- layout ---------- */
+.wrap { max-width: var(--max); margin-inline: auto; padding-inline: var(--gutter); }
+.section { padding-block: clamp(64px, 9vw, 132px); }
+.rule { height: 1px; background: var(--hairline); border: 0; margin: 0; }
+
+/* ---------- grain: dark gradients band at 8-bit without it ---------- */
+.grain::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  opacity: .05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- utility bar + header ---------- */
+.utility {
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--hairline);
+  font-size: .74rem;
+  color: var(--text-2);
+}
+.utility .wrap {
+  height: 34px; display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem;
+}
+.utility a { color: var(--text-2); }
+.utility a:hover { color: var(--orange); }
+.utility-facts { display: flex; gap: 1.4rem; }
+@media (max-width: 760px) { .utility-facts span + span { display: none; } }
+
+/* The chrome is injected into a plain <div id="chrome-header">, which becomes the
+   sticky header's containing block — it is exactly as tall as the header, so the
+   header had zero travel and scrolled away, .stuck class and all. display:contents
+   removes that box so the header sticks against the page as designed. */
+#chrome-header { display: contents; }
+
+.site-header {
+  position: sticky; top: 0; z-index: 60;
+  border-bottom: 1px solid transparent;
+  transition: background var(--t), border-color var(--t), backdrop-filter var(--t);
+}
+.site-header.stuck {
+  background: color-mix(in srgb, var(--ground) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom-color: var(--hairline);
+}
+.site-header .wrap {
+  height: 66px; display: flex; align-items: center; gap: clamp(1rem, 3vw, 2.6rem);
+}
+.wordmark {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 74, 'wght' 800;
+  font-size: 1.14rem; letter-spacing: .07em; text-transform: uppercase;
+  white-space: nowrap; display: flex; align-items: center; gap: .55rem;
+}
+.wordmark .tick { width: 9px; height: 20px; background: var(--orange); flex: none; }
+.wordmark small {
+  font-family: var(--font-mono); font-size: .54rem; letter-spacing: .18em;
+  color: var(--text-mute); font-variation-settings: normal; font-weight: 400;
+}
+.nav { display: flex; gap: 1.7rem; margin-left: auto; align-items: center; }
+.nav a {
+  font-size: .81rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-2); position: relative; padding-block: 4px;
+}
+.nav a::after {
+  content: ''; position: absolute; left: 0; bottom: 0; height: 1px; width: 0;
+  background: var(--orange); transition: width var(--t);
+}
+.nav a:hover, .nav a[aria-current] { color: var(--text); }
+.nav a:hover::after, .nav a[aria-current]::after { width: 100%; }
+@media (max-width: 900px) { .nav .hide-sm { display: none; } }
+
+/* ---------- buttons ---------- */
+.btn {
+  --bg: var(--orange); --fg: var(--on-orange);
+  display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+  background: var(--bg); color: var(--fg);
+  border: 1px solid var(--bg); border-radius: var(--r);
+  padding: .74rem 1.35rem; cursor: pointer;
+  font-family: var(--font-mono); font-size: .77rem;
+  letter-spacing: .12em; text-transform: uppercase; font-weight: 500;
+  transition: filter var(--t-fast), background var(--t-fast), color var(--t-fast);
+  white-space: nowrap;
+}
+.btn:hover  { filter: brightness(1.1); }
+.btn:active { background: var(--orange-press); border-color: var(--orange-press); }
+.btn-ghost {
+  --bg: transparent; --fg: var(--text);
+  border-color: var(--hairline-lit);
+}
+.btn-ghost:hover { border-color: var(--orange); color: var(--orange); filter: none; }
+.btn-sm { padding: .5rem .9rem; font-size: .7rem; }
+/* A disabled .btn was visually identical to a live one — the portal reorder and
+   the quick-order "add all" both ship disabled, so the state has to be visible. */
+.btn:disabled, .btn[aria-disabled="true"] {
+  background: transparent; color: var(--text-mute);
+  border-color: var(--hairline); cursor: not-allowed; filter: none;
+}
+.btn:disabled:hover, .btn[aria-disabled="true"]:hover { filter: none; }
+
+/* ---------- stock pills ---------- */
+.pill {
+  display: inline-flex; align-items: center; gap: .42rem;
+  font-family: var(--font-mono); font-size: .66rem;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text-2);
+}
+.pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.in       { color: var(--stock); }
+.pill.back     { color: var(--coyote); }
+.pill.out      { color: var(--text-mute); }
+.pill.blocked  { color: var(--danger); }
+
+/* ---------- product card ---------- */
+.grid-products {
+  display: grid; gap: 1px;
+  background: var(--hairline);
+  border: 1px solid var(--hairline);
+  grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+}
+.card {
+  background: var(--ground);
+  padding: 1.15rem 1.15rem 1.25rem;
+  display: flex; flex-direction: column; gap: .72rem;
+  position: relative; isolation: isolate;
+  transition: background var(--t);
+}
+.card:hover { background: var(--surface-1); }
+.card-media {
+  aspect-ratio: 4 / 3; display: grid; place-items: center;
+  position: relative; overflow: hidden;
+}
+.card-media::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(ellipse at 50% 62%,
+    color-mix(in srgb, var(--orange) 11%, transparent) 0%, transparent 66%);
+  opacity: 0; transition: opacity var(--t);
+}
+.card:hover .card-media::before { opacity: 1; }
+.card-media img {
+  max-height: 100%; width: auto; object-fit: contain;
+  transition: transform var(--t);
+  filter: drop-shadow(0 12px 22px rgba(0,0,0,.55));
+}
+.card:hover .card-media img { transform: scale(1.045); }
+.card-sku {
+  font-family: var(--font-mono); font-size: .64rem;
+  letter-spacing: .09em; color: var(--text-mute);
+  display: flex; justify-content: space-between; gap: .6rem;
+}
+.card-name {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 82, 'wght' 600;
+  font-size: .97rem; line-height: 1.16; text-transform: uppercase;
+  letter-spacing: .01em;
+}
+.card-name a::after { content: ''; position: absolute; inset: 0; }
+.card-foot {
+  margin-top: auto; padding-top: .55rem; border-top: 1px solid var(--hairline);
+  display: flex; align-items: baseline; justify-content: space-between; gap: .5rem;
+}
+.price { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: .95rem; }
+.price small { color: var(--text-mute); font-size: .62rem; letter-spacing: .08em; display: block; }
+.price-gate {
+  font-family: var(--font-mono); font-size: .68rem; letter-spacing: .06em;
+  color: var(--orange); text-transform: uppercase;
+}
+
+/* ---------- tables ---------- */
+table.data { width: 100%; border-collapse: collapse; font-size: .87rem; }
+table.data th, table.data td {
+  text-align: left; padding: .62rem .8rem; border-bottom: 1px solid var(--hairline);
+  font-variant-numeric: tabular-nums;
+}
+table.data th {
+  font-family: var(--font-mono); font-size: .64rem; font-weight: 500;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--text-mute);
+  white-space: nowrap;
+}
+table.data td.n, table.data th.n { text-align: right; font-family: var(--font-mono); }
+table.data tbody tr:hover { background: var(--surface-1); }
+/* position:relative is load-bearing, not decoration. Visually-hidden labels and
+   captions inside these tables are position:absolute; without a positioned
+   scroller their containing block is the page, so they sat at the table's full
+   unscrolled width and stretched the document to 564px at a 380px viewport.
+   Measured before/after: documentElement.scrollWidth 564 -> 361. */
+.table-scroll { overflow-x: auto; position: relative; }
+
+/* ---------- forms ---------- */
+.field { display: flex; flex-direction: column; gap: .34rem; }
+.field label {
+  font-family: var(--font-mono); font-size: .64rem;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--text-mute);
+}
+.input, select.input, textarea.input {
+  background: var(--surface-2); border: 1px solid var(--hairline);
+  border-radius: var(--r); padding: .66rem .8rem; width: 100%;
+  transition: border-color var(--t-fast);
+}
+.input:focus { border-color: var(--orange); outline: none; }
+textarea.input { font-family: var(--font-mono); font-size: .84rem; min-height: 190px; resize: vertical; }
+
+/* ---------- misc ---------- */
+.note {
+  border-left: 2px solid var(--orange);
+  background: var(--orange-wash);
+  padding: .85rem 1.05rem; font-size: .84rem; color: var(--text-2);
+}
+.tag {
+  font-family: var(--font-mono); font-size: .6rem; letter-spacing: .12em;
+  text-transform: uppercase; padding: .2rem .5rem;
+  border: 1px solid var(--hairline-lit); color: var(--text-2); border-radius: var(--r);
+}
+.reveal { opacity: 0; transform: translateY(22px); }
+.reveal.in { opacity: 1; transform: none; transition: opacity .75s var(--t), transform .75s cubic-bezier(.22,.61,.36,1); }
+
+.site-footer { border-top: 1px solid var(--hairline); background: var(--surface-1); }
+.site-footer .wrap { padding-block: 3rem 2rem; }
+.foot-grid { display: grid; gap: 2rem; grid-template-columns: 1.6fr repeat(3, 1fr); }
+@media (max-width: 820px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+.site-footer h4 {
+  font-size: .7rem; letter-spacing: .16em; color: var(--text-mute);
+  font-family: var(--font-mono); font-variation-settings: normal; margin-bottom: .8rem;
+}
+.site-footer a { color: var(--text-2); font-size: .86rem; display: block; padding-block: .2rem; }
+.site-footer a:hover { color: var(--orange); }
+.legal {
+  border-top: 1px solid var(--hairline); margin-top: 2.2rem; padding-top: 1.3rem;
+  font-size: .72rem; color: var(--text-mute); display: flex; gap: 1.2rem;
+  flex-wrap: wrap; justify-content: space-between;
+}
+
+/* ---------- small-screen header ----------
+   The single-row header measures ~569px of content. Below ~700px that pushed
+   the right-hand CTA ("Apply for pricing" / "Cart") past the viewport edge, and
+   because body sets overflow-x:hidden there was no way to scroll to it — the
+   primary action was simply unreachable on a phone. The nav drops to its own
+   row rather than hiding links. Pages that stick something under the header
+   must read the live header height, not assume 66px. */
+@media (max-width: 700px) {
+  .site-header .wrap {
+    height: auto; flex-wrap: wrap; row-gap: .5rem; padding-block: .6rem;
+  }
+  .nav {
+    width: 100%; margin-left: 0; justify-content: space-between; gap: .9rem;
+  }
+  .nav a { font-size: .74rem; letter-spacing: .06em; }
+  .btn-sm { padding: .46rem .72rem; font-size: .64rem; letter-spacing: .07em; }
+  /* one line, not two — the header is pinned, so its height is a permanent tax */
+  .wordmark br, .wordmark small { display: none; }
+}

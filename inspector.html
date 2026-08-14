@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Platform Inspector · Fieldstock Supply Co.</title>
+<meta name="description" content="Orbit, explode and inspect the AEG platform. Every part is a stocked SKU.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  .insp {
+    display: grid; grid-template-columns: 336px 1fr;
+    height: calc(100vh - 100px); min-height: 620px;
+    border-top: 1px solid var(--hairline);
+  }
+  .insp-panel {
+    border-right: 1px solid var(--hairline);
+    background: var(--surface-1);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  .insp-stage { position: relative; overflow: hidden; background: var(--ground); }
+  /* Must be positioned. A static canvas paints in the in-flow step, i.e. BENEATH
+     .stage-glow, which is absolute — DOM order does not save it. */
+  .insp-stage canvas { display: block; width: 100%; height: 100%; position: relative; z-index: 1; }
+
+  /* The stage is never flat black — a matte rifle on flat black has no readable form. */
+  .stage-glow {
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(58% 48% at 50% 56%, rgba(255,106,0,.10) 0%, transparent 62%),
+      radial-gradient(80% 70% at 50% 45%, #1b1f1d 0%, var(--ground) 70%);
+  }
+
+  .pgroup { border-bottom: 1px solid var(--hairline); }
+  .pgroup > h3 {
+    font-family: var(--font-mono); font-variation-settings: normal;
+    font-size: .64rem; letter-spacing: .17em; color: var(--text-mute);
+    font-weight: 500; padding: .95rem 1.15rem .55rem; text-transform: uppercase;
+  }
+  .pgroup .body { padding: 0 1.15rem 1.05rem; }
+
+  .part-btn {
+    display: grid; grid-template-columns: 1fr auto; gap: .2rem .6rem;
+    width: 100%; text-align: left; cursor: pointer;
+    background: transparent; border: 1px solid transparent;
+    border-left: 2px solid var(--hairline);
+    padding: .5rem .7rem; border-radius: 0 var(--r) var(--r) 0;
+    transition: background var(--t-fast), border-color var(--t-fast);
+  }
+  .part-btn:hover { background: var(--surface-2); border-left-color: var(--hairline-lit); }
+  .part-btn[aria-pressed="true"] {
+    background: var(--orange-wash); border-left-color: var(--orange);
+  }
+  .part-btn .pname {
+    grid-column: 1; grid-row: 1;
+    font-family: var(--font-display); font-variation-settings: 'wdth' 82,'wght' 600;
+    text-transform: uppercase; font-size: .82rem; letter-spacing: .01em;
+  }
+  .part-btn .psku {
+    grid-column: 1; grid-row: 2;
+    font-family: var(--font-mono);
+    font-size: .6rem; color: var(--text-mute); letter-spacing: .06em;
+  }
+  .part-btn .pprice {
+    grid-column: 2; grid-row: 1 / span 2; align-self: center; text-align: right;
+    font-family: var(--font-mono); font-size: .78rem; color: var(--text-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .part-btn[aria-pressed="true"] .pprice { color: var(--orange); }
+
+  .ctl { display: flex; flex-direction: column; gap: .45rem; margin-bottom: 1rem; }
+  .ctl label {
+    font-family: var(--font-mono); font-size: .62rem;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--text-mute);
+    display: flex; justify-content: space-between;
+  }
+  input[type=range] { width: 100%; accent-color: var(--orange); }
+  .seg { display: flex; border: 1px solid var(--hairline); border-radius: var(--r); overflow: hidden; }
+  .seg button {
+    flex: 1; background: transparent; border: 0; cursor: pointer;
+    padding: .48rem .3rem; color: var(--text-2);
+    font-family: var(--font-mono); font-size: .64rem; letter-spacing: .1em;
+    text-transform: uppercase; transition: background var(--t-fast), color var(--t-fast);
+  }
+  .seg button + button { border-left: 1px solid var(--hairline); }
+  .seg button[aria-pressed="true"] { background: var(--orange); color: var(--on-orange); }
+
+  .hint {
+    position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+    z-index: 2; font-family: var(--font-mono); font-size: .64rem;
+    letter-spacing: .11em; color: var(--text-mute);
+    background: color-mix(in srgb, var(--surface-1) 78%, transparent);
+    border: 1px solid var(--hairline); border-radius: 999px;
+    padding: .42rem 1rem; backdrop-filter: blur(8px); white-space: nowrap;
+  }
+  .readout {
+    position: absolute; top: 16px; left: 16px; z-index: 2; max-width: 300px;
+    background: color-mix(in srgb, var(--surface-1) 88%, transparent);
+    border: 1px solid var(--hairline); border-left: 2px solid var(--orange);
+    padding: .85rem 1rem; backdrop-filter: blur(10px);
+    opacity: 0; transform: translateY(-6px); transition: opacity var(--t), transform var(--t);
+    pointer-events: none;
+  }
+  .readout.show { opacity: 1; transform: none; pointer-events: auto; }
+  .readout h4 {
+    font-family: var(--font-display); font-variation-settings: 'wdth' 80,'wght' 700;
+    text-transform: uppercase; font-size: .95rem; margin: 0 0 .2rem;
+  }
+  .readout .k { font-family: var(--font-mono); font-size: .6rem; color: var(--text-mute); letter-spacing: .1em; }
+  .readout p { font-size: .78rem; color: var(--text-2); margin: .5rem 0 .6rem; }
+
+  .loading {
+    position: absolute; inset: 0; z-index: 5; display: grid; place-items: center;
+    background: var(--ground); transition: opacity .5s ease;
+    font-family: var(--font-mono); font-size: .7rem; letter-spacing: .18em;
+    color: var(--text-mute); text-transform: uppercase;
+  }
+  .loading.gone { opacity: 0; pointer-events: none; }
+
+  .fallback { padding: 2.5rem; max-width: 60ch; margin: auto; }
+
+  @media (max-width: 940px) {
+    .insp { grid-template-columns: 1fr; height: auto; }
+    .insp-stage { height: 60vh; min-height: 380px; order: -1; border-bottom: 1px solid var(--hairline); }
+    .insp-panel { border-right: 0; max-height: none; }
+    .readout { max-width: calc(100% - 32px); }
+  }
+</style>
+</head>
+<body>
+<div id="chrome-header"></div>
+
+<main>
+  <div class="wrap" style="padding-block:2.2rem 1.4rem">
+    <p class="eyebrow">Platform inspector</p>
+    <h1 style="font-size:clamp(2rem,4vw,3.2rem)">Every part is a line item</h1>
+    <p class="lede" style="margin-top:.7rem">
+      A generic AEG platform, assembled from the categories we stock. Click a component
+      to isolate it and see what it costs you. Drag to orbit, scroll to zoom.
+    </p>
+  </div>
+
+  <div class="insp">
+    <aside class="insp-panel" aria-label="Inspector controls">
+      <div class="pgroup">
+        <h3>View</h3>
+        <div class="body">
+          <div class="ctl">
+            <label for="explode"><span>Exploded view</span><span class="mono" id="explodeVal">0%</span></label>
+            <input type="range" id="explode" min="0" max="100" value="0" aria-describedby="explodeHelp">
+            <span id="explodeHelp" class="mono" style="font-size:.6rem;color:var(--text-mute)">
+              Separates assemblies along their own axes.</span>
+          </div>
+          <div class="ctl">
+            <label for="finishSeg">Finish</label>
+            <div class="seg" id="finishSeg" role="group" aria-label="Finish">
+              <button type="button" data-finish="bk" aria-pressed="true">Black</button>
+              <button type="button" data-finish="de" aria-pressed="false">Dark earth</button>
+              <button type="button" data-finish="wd" aria-pressed="false">Wood</button>
+            </div>
+          </div>
+          <div class="ctl">
+            <label for="spinSeg">Auto-orbit</label>
+            <div class="seg" id="spinSeg" role="group" aria-label="Auto orbit">
+              <button type="button" data-spin="1" aria-pressed="true">On</button>
+              <button type="button" data-spin="0" aria-pressed="false">Off</button>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="resetView" style="width:100%">Reset view</button>
+        </div>
+      </div>
+
+      <div class="pgroup">
+        <h3>Components &mdash; click to isolate</h3>
+        <div class="body" id="partList" style="display:flex;flex-direction:column;gap:.3rem"></div>
+      </div>
+
+      <div class="pgroup">
+        <h3>Build total</h3>
+        <div class="body">
+          <table class="data" style="font-size:.8rem">
+            <tbody>
+              <tr><td>Components shown</td><td class="n mono" id="sumCount">—</td></tr>
+              <tr><td id="sumLabel">MSRP total</td><td class="n mono" id="sumTotal">—</td></tr>
+            </tbody>
+          </table>
+          <p class="mono" id="sumNote"
+             style="font-size:.6rem;color:var(--text-mute);margin-top:.7rem;line-height:1.5"></p>
+        </div>
+      </div>
+
+      <div class="pgroup">
+        <h3>US marking</h3>
+        <div class="body">
+          <p style="font-size:.8rem;color:var(--text-2);margin:0 0 .7rem">
+            The muzzle device on this model carries the blaze-orange marking required of
+            every unit we ship into the United States.
+          </p>
+          <a class="mono" href="compliance.html"
+             style="font-size:.66rem;letter-spacing:.1em;color:var(--orange)">
+            The four marking tiers &rarr;</a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="insp-stage" id="stage">
+      <div class="stage-glow"></div>
+      <div class="loading" id="loading">Building platform…</div>
+      <div class="readout" id="readout" aria-live="polite">
+        <span class="k" id="roSku">—</span>
+        <h4 id="roName">—</h4>
+        <p id="roDesc"></p>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+          <span id="roPrice" class="mono" style="font-size:.95rem"></span>
+          <a id="roLink" class="btn btn-sm" href="#">View SKU</a>
+        </div>
+      </div>
+      <div class="hint">drag to orbit &middot; scroll to zoom &middot; click a component</div>
+    </div>
+  </div>
+
+  <div class="wrap" style="padding-block:2.4rem 3rem">
+    <p class="mono" style="font-size:.66rem;color:var(--text-mute);max-width:78ch;line-height:1.7">
+      The model is a representative AEG platform rendered from primitives for inspection,
+      not a scan of a specific SKU. Component pricing is drawn from live catalog records.
+      Photography of each actual SKU is on its product page.
+    </p>
+  </div>
+</main>
+
+<div id="chrome-footer"></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script src="assets/js/store.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+FS.mountChrome('inspector');
+FS.revealOnScroll();
+
+const stage = document.getElementById('stage');
+const loading = document.getElementById('loading');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Each visual assembly maps to a real catalog category. We pick a concrete SKU
+   from products.json at load so prices and links are real, never invented. */
+const PARTS = [
+  { key:'upper',   name:'Upper receiver',   axis:[0, .55,0], match:{cat:'Parts & Accessories', kw:['receiver','upper','body']} },
+  { key:'lower',   name:'Lower receiver',   axis:[0,-.55,0], match:{cat:'Parts & Accessories', kw:['lower','receiver','frame']} },
+  { key:'handguard',name:'Handguard / rail',axis:[0, .30,.55],match:{cat:'Parts & Accessories', kw:['rail','handguard','ras','m-lok','mlok']} },
+  { key:'barrel',  name:'Inner + outer barrel', axis:[1.6,0,0], match:{cat:'Parts & Accessories', kw:['barrel']} },
+  { key:'muzzle',  name:'Muzzle device',    axis:[2.5,0,0],  match:{cat:'Parts & Accessories', kw:['suppressor','silencer','flash','tracer','muzzle']} },
+  { key:'stock',   name:'Stock',            axis:[-2.0,0,0], match:{cat:'Parts & Accessories', kw:['stock','buttstock']} },
+  { key:'buffer',  name:'Buffer tube',      axis:[-1.2,0,0], match:{cat:'Parts & Accessories', kw:['buffer','tube']} },
+  { key:'grip',    name:'Pistol grip',      axis:[0,-1.1,0], match:{cat:'Parts & Accessories', kw:['grip']} },
+  { key:'mag',     name:'Magazine',         axis:[0,-1.7,0], match:{cat:'Magazines', kw:['magazine','mag']} },
+  { key:'gearbox', name:'Gearbox',          axis:[0,-.2,-1.5],match:{cat:'Parts & Accessories', kw:['gearbox','gear','piston','shell']} },
+  { key:'motor',   name:'Motor',            axis:[0,-1.4,-.6],match:{cat:'Parts & Accessories', kw:['motor']} },
+  { key:'hopup',   name:'Hop-up unit',      axis:[.6,.25,-1.1],match:{cat:'Parts & Accessories', kw:['hop','bucking','nub']} },
+  { key:'optic',   name:'Optic mount',      axis:[0,1.5,0],  match:{cat:'Parts & Accessories', kw:['mount','scope','sight','riser']} },
+];
+
+/* ---------- scene ---------- */
+let renderer, scene, camera, controls, root, raf = 0, FIT = 10;
+const groups = {};
+let selected = null, hovered = null;
+let idle = 0, autoSpin = true;
+
+const FINISH = {
+  bk: { poly: 0x1b1d1c, metal: 0x2b2e2d, tint: 0x0e0f0f },
+  de: { poly: 0x9a8055, metal: 0x8a7449, tint: 0x2a2418 },
+  wd: { poly: 0x6b4526, metal: 0x2b2e2d, tint: 0x241708 },
+};
+let finish = 'bk';
+
+const MAT = {};
+const ALL_MATS = [];   // per-group clones, tagged with userData.role
+function buildMaterials() {
+  const f = FINISH[finish];
+  MAT.poly  = new THREE.MeshPhysicalMaterial({ color: f.poly,  metalness: .02, roughness: .52, clearcoat: .12 });
+  MAT.metal = new THREE.MeshPhysicalMaterial({ color: f.metal, metalness: .90, roughness: .35 });
+  MAT.steel = new THREE.MeshPhysicalMaterial({ color: 0x3a3d3c, metalness: .85, roughness: .30 });
+  MAT.orange= new THREE.MeshPhysicalMaterial({ color: 0xff6a00, metalness: .10, roughness: .45,
+                                               emissive: 0xff6a00, emissiveIntensity: .18 });
+  MAT.dark  = new THREE.MeshPhysicalMaterial({ color: 0x141614, metalness: .5, roughness: .6 });
+}
+
+function box(w,h,d,mat,x=0,y=0,z=0){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); return m;
+}
+function cyl(rt,rb,h,mat,rot='x',x=0,y=0,z=0,seg=24){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat);
+  if(rot==='x') m.rotation.z=Math.PI/2;
+  if(rot==='z') m.rotation.x=Math.PI/2;
+  m.position.set(x,y,z); return m;
+}
+
+function buildRifle() {
+  const r = new THREE.Group();
+  const g = k => { const grp = new THREE.Group(); grp.userData.key = k; groups[k]=grp; r.add(grp); return grp; };
+
+  const Y = .30;   // bore line
+  const W = .62;   // receiver width
+
+  // upper receiver — slab plus the raised rail platform
+  const up = g('upper');
+  up.add(box(1.85,.46,W, MAT.metal, .15,Y+.05,0));
+  up.add(box(.55,.30,W*.92, MAT.metal, -.72,Y+.02,0));      // charging-handle shroud
+  up.add(box(2.30,.07,.40, MAT.metal, .30,Y+.31,0));        // rail base
+  for(let i=0;i<16;i++) up.add(box(.055,.075,.38, MAT.metal, -.78+i*.15,Y+.37,0));
+  up.add(cyl(.20,.20,.22,MAT.metal,'x',1.16,Y+.05,0));      // barrel nut
+  up.add(box(.24,.16,.10, MAT.metal, -1.02,Y+.06,.30));     // forward assist
+
+  // lower receiver
+  const lo = g('lower');
+  lo.add(box(1.30,.42,W*.94, MAT.poly, -.15,Y-.36,0));
+  lo.add(box(.62,.26,W*.86, MAT.poly, -.68,Y-.52,0));       // magwell flare
+  const tg = new THREE.Mesh(new THREE.TorusGeometry(.20,.035,8,22,Math.PI),MAT.poly);
+  tg.rotation.set(Math.PI/2,0,Math.PI); tg.position.set(.05,Y-.60,0); lo.add(tg);
+  lo.add(box(.06,.22,.05, MAT.steel, .03,Y-.52,0));         // trigger blade
+  lo.add(cyl(.055,.055,W,MAT.steel,'z',-.32,Y-.30,0,14));   // pivot pin
+  lo.add(cyl(.055,.055,W,MAT.steel,'z',.42,Y-.30,0,14));    // takedown pin
+
+  // handguard
+  const hg = g('handguard');
+  hg.add(box(2.05,.40,.52, MAT.metal, 2.30,Y+.03,0));
+  hg.add(box(2.15,.06,.34, MAT.metal, 2.30,Y+.28,0));       // continuous top rail
+  for(let i=0;i<13;i++) hg.add(box(.055,.065,.32, MAT.metal, 1.36+i*.15,Y+.33,0));
+  for(let i=0;i<6;i++){                                      // m-lok slots, both flanks
+    hg.add(box(.26,.07,.015, MAT.dark, 1.55+i*.31,Y+.03,.265));
+    hg.add(box(.26,.07,.015, MAT.dark, 1.55+i*.31,Y+.03,-.265));
+    hg.add(box(.26,.07,.015, MAT.dark, 1.55+i*.31,Y-.15,0));
+  }
+
+  // barrel
+  const br = g('barrel');
+  br.add(cyl(.075,.075,1.25, MAT.steel,'x',3.90,Y,0,20));
+  br.add(cyl(.105,.105,.16, MAT.steel,'x',3.45,Y,0,20));    // gas block shoulder
+  br.add(box(.22,.26,.20, MAT.dark, 3.42,Y+.14,0));         // gas block
+
+  // muzzle device — carries the blaze-orange US marking
+  const mz = g('muzzle');
+  mz.add(cyl(.105,.105,.34, MAT.steel,'x',4.66,Y,0,20));
+  mz.add(cyl(.112,.112,.30, MAT.orange,'x',4.96,Y,0,20));   // 16 CFR 1272 marking
+  mz.userData.marking = true;
+
+  // buffer tube
+  const bf = g('buffer');
+  bf.add(cyl(.135,.135,1.15, MAT.metal,'x',-1.42,Y+.02,0,20));
+  bf.add(box(.16,.30,.22, MAT.poly, -.88,Y-.10,0));         // castle/endplate
+
+  // stock — collapsible, cheek riser and toe
+  const st = g('stock');
+  st.add(box(.95,.52,.44, MAT.poly, -1.62,Y-.02,0));
+  st.add(box(.20,.62,.40, MAT.poly, -2.16,Y-.08,0));        // buttplate
+  st.add(box(.70,.16,.36, MAT.poly, -1.70,Y+.26,0));        // comb
+  st.add(box(.44,.20,.30, MAT.poly, -1.44,Y-.30,0));        // toe
+
+  // grip
+  const gr = g('grip');
+  const grip = box(.30,.68,.44, MAT.poly, -.52,Y-.72,0);
+  grip.rotation.z = .34; gr.add(grip);
+  gr.add(box(.24,.10,.42, MAT.dark, -.60,Y-1.03,0));
+
+  // magazine — STANAG curve suggested by two stacked, angled sections
+  const mg = g('mag');
+  const m1 = box(.34,.72,.50, MAT.poly, -.02,Y-.86,0); m1.rotation.z = .05; mg.add(m1);
+  const m2 = box(.34,.55,.50, MAT.poly, .08,Y-1.48,0); m2.rotation.z = .16; mg.add(m2);
+  mg.add(box(.38,.08,.54, MAT.dark, .12,Y-1.76,0));
+
+  // gearbox — hidden inside the receiver, revealed by the exploded view
+  const gb = g('gearbox');
+  gb.add(box(.92,.62,.50, MAT.metal, -.18,Y-.30,0));
+  gb.add(cyl(.20,.20,.07, MAT.steel,'z',-.05,Y-.26,.27,20));
+  gb.add(cyl(.13,.13,.07, MAT.steel,'z',-.34,Y-.40,.27,20));
+  gb.add(cyl(.09,.09,.07, MAT.steel,'z',-.44,Y-.16,.27,16));
+
+  // motor — sits in the grip
+  const mo = g('motor');
+  mo.add(cyl(.135,.135,.66, MAT.steel,'y',-.52,Y-.74,0,20));
+  mo.add(cyl(.055,.055,.12, MAT.dark,'y',-.52,Y-1.10,0,12));
+
+  // hop-up
+  const hu = g('hopup');
+  hu.add(box(.40,.30,.34, MAT.dark, 1.02,Y+.02,0));
+  hu.add(cyl(.045,.045,.40,MAT.steel,'x',1.36,Y+.02,0,14));
+  hu.add(cyl(.06,.06,.10,MAT.orange,'z',1.02,Y+.16,.19,12));  // adjustment wheel
+
+  // optic
+  const op = g('optic');
+  op.add(box(.42,.30,.34, MAT.dark, .34,Y+.60,0));
+  op.add(box(.34,.12,.30, MAT.dark, .34,Y+.41,0));            // mount
+  const lens = new THREE.Mesh(new THREE.CylinderGeometry(.115,.115,.02,20),
+    new THREE.MeshPhysicalMaterial({color:0x14322e,metalness:.2,roughness:.08,
+      transmission:.6,thickness:.3,ior:1.45}));
+  lens.rotation.z=Math.PI/2; lens.position.set(.556,Y+.60,0); op.add(lens);
+
+  // Emphasis fades the parts you did not pick. Materials are shared across
+  // assemblies, so fading "the others" would fade the selected part too —
+  // each group gets its own instances.
+  const roleOf = new Map(Object.entries(MAT).map(([role, m]) => [m, role]));
+  ALL_MATS.length = 0;
+  Object.values(groups).forEach(grp => {
+    const mine = new Map();
+    grp.traverse(o => {
+      if (!o.isMesh) return;
+      o.userData.groupKey = grp.userData.key;
+      if (!mine.has(o.material)) {
+        const c = o.material.clone();
+        c.userData.role = roleOf.get(o.material) || 'other';
+        mine.set(o.material, c);
+        ALL_MATS.push(c);
+      }
+      o.material = mine.get(o.material);
+    });
+    grp.userData.mats = [...mine.values()];
+    grp.userData.home = grp.position.clone();
+  });
+  return r;
+}
+
+function init() {
+  scene = new THREE.Scene();
+
+  const w = stage.clientWidth, h = stage.clientHeight;
+  camera = new THREE.PerspectiveCamera(38, w/h, .1, 200);
+
+  renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, powerPreference:'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(w, h);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  stage.appendChild(renderer.domElement);
+
+  // A metal without an environment to reflect renders black. Direct lights alone
+  // give a metalness-0.9 surface almost no diffuse, so the model disappears
+  // against a dark ground. The generated room supplies that environment.
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environmentIntensity = 0.55;
+
+  // Black-on-black fix: a dim key plus two cool rim lights that draw the silhouette.
+  scene.add(new THREE.HemisphereLight(0x9fb0c0, 0x0a0c0b, .55));
+  const key = new THREE.DirectionalLight(0xfff2e6, 1.5); key.position.set(5,7,6); scene.add(key);
+  const rimL = new THREE.DirectionalLight(0x9ad0ff, 2.6); rimL.position.set(-7,2.5,-5); scene.add(rimL);
+  const rimR = new THREE.DirectionalLight(0xbfe0ff, 2.0); rimR.position.set(6,1.5,-6); scene.add(rimR);
+  const warm = new THREE.PointLight(0xff6a00, 12, 22, 2); warm.position.set(1.5,-2.6,2.5); scene.add(warm);
+
+  buildMaterials();
+  root = buildRifle();
+  scene.add(root);
+
+  // Centre on the assembly's own bounds, then frame the camera to it, so the
+  // shot stays correct if any part geometry changes.
+  const b0 = new THREE.Box3().setFromObject(root);
+  const c0 = b0.getCenter(new THREE.Vector3());
+  root.children.forEach(ch => { ch.position.sub(c0); ch.userData.home = ch.position.clone(); });
+
+  const size = b0.getSize(new THREE.Vector3());
+  const fitH = size.y, fitW = size.x;
+  const fov = camera.fov * Math.PI / 180;
+  const distH = fitH / (2 * Math.tan(fov / 2));
+  const distW = fitW / (2 * Math.tan(fov / 2) * camera.aspect);
+  FIT = Math.max(distH, distW) * 1.5;
+  camera.position.set(FIT * .52, FIT * .30, FIT * .80);
+  camera.near = FIT / 100; camera.far = FIT * 12; camera.updateProjectionMatrix();
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = .06;
+  controls.minDistance = FIT * .45;
+  controls.maxDistance = FIT * 2.2;
+  controls.maxPolarAngle = Math.PI * .86;
+  controls.minPolarAngle = Math.PI * .10;
+  controls.autoRotateSpeed = 1.2;
+  controls.target.set(0, 0, 0);
+  controls.addEventListener('start', () => { idle = 0; controls.autoRotate = false; });
+  controls.update();
+
+  addEventListener('resize', onResize, { passive:true });
+  renderer.domElement.addEventListener('pointermove', onPointerMove, { passive:true });
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
+  renderer.domElement.addEventListener('pointerleave', () => setHover(null));
+
+  loading.classList.add('gone');
+  animate();
+
+  const bb = new THREE.Box3().setFromObject(root);
+  window.__insp = { scene, camera, renderer, root, groups, bbox: bb };
+}
+
+function onResize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  if (!w || !h) return;
+  camera.aspect = w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h);
+}
+
+/* raycast throttled to ~30Hz — unthrottled picking is a real frame-rate cost */
+const ray = new THREE.Raycaster(); const ptr = new THREE.Vector2();
+let lastCast = 0, pendingMove = null;
+function onPointerMove(e){ pendingMove = e; }
+function doCast(e){
+  const r = renderer.domElement.getBoundingClientRect();
+  ptr.x = ((e.clientX-r.left)/r.width)*2-1;
+  ptr.y = -((e.clientY-r.top)/r.height)*2+1;
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(root.children, true)[0];
+  setHover(hit ? hit.object.userData.groupKey : null);
+}
+function setHover(k){
+  if (hovered === k) return;
+  hovered = k;
+  renderer.domElement.style.cursor = k ? 'pointer' : 'grab';
+  applyEmphasis();
+}
+function onPointerDown(){ if (hovered) select(hovered); }
+
+function applyEmphasis(){
+  Object.entries(groups).forEach(([k,grp]) => {
+    const on = (k === selected);
+    const hi = (k === hovered);
+    const dim = selected && !on;
+    (grp.userData.mats || []).forEach(m => {
+      // Toggling `transparent` swaps the shader program, so it needs an explicit
+      // recompile — without it the dim silently does nothing.
+      if (m.transparent !== dim) m.needsUpdate = true;
+      m.opacity = dim ? .14 : 1;
+      m.transparent = dim;
+      m.depthWrite = !dim;
+      if (m.emissive) {
+        const lit = on || (!selected && hi);
+        m.emissive.setHex(lit ? 0x3a1a00 : 0x000000);
+        m.emissiveIntensity = lit ? 1 : 0;
+      }
+    });
+  });
+}
+
+function animate(){
+  raf = requestAnimationFrame(animate);
+  const now = performance.now();
+  if (pendingMove && now - lastCast > 33){ doCast(pendingMove); pendingMove = null; lastCast = now; }
+  idle += 1;
+  if (autoSpin && idle > 180 && !reduced) controls.autoRotate = true;
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+/* ---------- explode ---------- */
+const explodeEl = document.getElementById('explode');
+const explodeVal = document.getElementById('explodeVal');
+function applyExplode(t){
+  Object.entries(groups).forEach(([k,grp]) => {
+    const def = PARTS.find(p=>p.key===k);
+    if (!def) return;
+    const [x,y,z] = def.axis;
+    const home = grp.userData.home;
+    grp.position.set(home.x + x*t, home.y + y*t, home.z + z*t);
+  });
+}
+explodeEl.addEventListener('input', () => {
+  const t = explodeEl.value/100;
+  explodeVal.textContent = explodeEl.value + '%';
+  applyExplode(t*1.15);
+  idle = 0;
+});
+
+document.getElementById('finishSeg').addEventListener('click', e => {
+  const b = e.target.closest('button[data-finish]'); if (!b) return;
+  finish = b.dataset.finish;
+  [...e.currentTarget.querySelectorAll('button')].forEach(x =>
+    x.setAttribute('aria-pressed', String(x === b)));
+  const f = FINISH[finish];
+  // Recolour the per-group clones; the MAT originals are only templates now.
+  ALL_MATS.forEach(m => {
+    if (m.userData.role === 'poly')  m.color.setHex(f.poly);
+    if (m.userData.role === 'metal') m.color.setHex(f.metal);
+  });
+});
+
+document.getElementById('spinSeg').addEventListener('click', e => {
+  const b = e.target.closest('button[data-spin]'); if (!b) return;
+  autoSpin = b.dataset.spin === '1';
+  controls.autoRotate = autoSpin && !reduced;
+  [...e.currentTarget.querySelectorAll('button')].forEach(x =>
+    x.setAttribute('aria-pressed', String(x === b)));
+});
+
+document.getElementById('resetView').addEventListener('click', () => {
+  camera.position.set(FIT * .52, FIT * .30, FIT * .80);
+  controls.target.set(0,0,0);
+  controls.update();
+  explodeEl.value = 0; explodeVal.textContent = '0%'; applyExplode(0);
+  select(null);
+});
+
+/* ---------- catalog binding ---------- */
+const readout = document.getElementById('readout');
+let RESOLVED = [];
+
+function pickSku(all, m){
+  const pool = all.filter(p => p.category === m.cat);
+  const scored = pool.map(p => {
+    const n = (p.name + ' ' + p.subcategory).toLowerCase();
+    let s = 0; m.kw.forEach((k,i) => { if (n.includes(k)) s += (m.kw.length - i); });
+    return { p, s };
+  }).filter(x => x.s > 0).sort((a,b) => b.s - a.s || a.p.msrp_usd - b.p.msrp_usd);
+  return scored.length ? scored[0].p : (pool[0] || all[0]);
+}
+
+function select(key){
+  selected = (selected === key) ? null : key;
+  applyEmphasis();
+  document.querySelectorAll('.part-btn').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.key === selected)));
+  const rec = RESOLVED.find(r => r.key === selected);
+  if (!rec){ readout.classList.remove('show'); return; }
+  const p = rec.product;
+  document.getElementById('roSku').textContent = p.sku;
+  document.getElementById('roName').textContent = rec.name;
+  document.getElementById('roDesc').textContent =
+    (p.description || '').slice(0,150) || p.name;
+  const net = FS.netPrice(p, p.minQty);
+  document.getElementById('roPrice').innerHTML = net
+    ? `${FS.usd(net)} <span style="color:var(--text-mute);font-size:.62rem">your cost</span>`
+    : `${FS.usd(p.msrp_usd)} <span style="color:var(--text-mute);font-size:.62rem">MSRP</span>`;
+  document.getElementById('roLink').href = 'product.html?id=' + encodeURIComponent(p.id);
+  readout.classList.add('show');
+  idle = 0;
+}
+
+function renderPanel(){
+  const list = document.getElementById('partList');
+  const frag = document.createDocumentFragment();
+  const signedIn = !!FS.user();
+  RESOLVED.forEach(r => {
+    const p = r.product;
+    const net = FS.netPrice(p, p.minQty);
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'part-btn'; b.dataset.key = r.key;
+    b.setAttribute('aria-pressed','false');
+    b.innerHTML =
+      `<span class="pname">${r.name}</span>` +
+      `<span class="pprice">${net ? FS.usd(net) : FS.usd(p.msrp_usd)}</span>` +
+      `<span class="psku">${p.sku}</span>`;
+    b.addEventListener('click', () => select(r.key));
+    frag.appendChild(b);
+  });
+  list.replaceChildren(frag);
+
+  const total = RESOLVED.reduce((s,r) =>
+    s + (FS.netPrice(r.product, r.product.minQty) ?? r.product.msrp_usd), 0);
+  document.getElementById('sumCount').textContent = RESOLVED.length;
+  document.getElementById('sumLabel').textContent = signedIn ? 'Your cost, 1 each' : 'MSRP total';
+  document.getElementById('sumTotal').textContent = FS.usd(total);
+  document.getElementById('sumNote').textContent = signedIn
+    ? 'Dealer net at tier. Case-pack minimums apply per SKU on the order screen.'
+    : 'Public MSRP. Sign in to see your dealer cost on every line.';
+}
+
+FS.products().then(all => {
+  RESOLVED = PARTS.map(def => ({ key:def.key, name:def.name, product: pickSku(all, def.match) }))
+                  .filter(r => r.product);
+  renderPanel();
+  try { init(); }
+  catch (err) {
+    console.error(err);
+    loading.classList.remove('gone');
+    loading.innerHTML = '<div class="fallback" style="text-align:center">' +
+      '<p style="color:var(--text-2);text-transform:none;letter-spacing:0;font-family:var(--font-body)">' +
+      'This inspector needs WebGL, which this browser or device has not made available. ' +
+      'The full catalog with photography of every SKU is at ' +
+      '<a href="catalog.html" style="color:var(--orange)">the catalog</a>.</p></div>';
+  }
+});
+</script>
+</body>
+</html>
