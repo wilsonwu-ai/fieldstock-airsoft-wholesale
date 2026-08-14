@@ -39,7 +39,10 @@ const FS = (() => {
 
   function decorate(p) {
     const r = hash(p.sku);
-    const msrp = Math.round(p.msrp_cad * FX * 100) / 100;
+    // 17 records carry no published price. They must read "on request" — a
+    // rendered $0.00 looks broken and invites a dealer to try to order at zero.
+    const onRequest = !p.msrp_cad;
+    const msrp = onRequest ? null : Math.round(p.msrp_cad * FX * 100) / 100;
 
     // Deliberately mixed stock. "Everything in stock" is the dropshipper tell
     // the community explicitly calls out as a scam signal.
@@ -52,10 +55,12 @@ const FS = (() => {
     const pack = CASE_PACKS[p.category] || 6;
     return {
       ...p,
+      priceOnRequest: onRequest,
       msrp_usd: msrp,
-      map_usd: Math.round(msrp * 0.88 * 100) / 100,
+      map_usd: onRequest ? null : Math.round(msrp * 0.88 * 100) / 100,
       tiers_usd: p.tiers.map(t => ({
-        ...t, unit_usd: Math.round(t.unit_price * FX * 100) / 100
+        ...t,
+        unit_usd: onRequest ? null : Math.round(t.unit_price * FX * 100) / 100
       })),
       stock, onHand, eta,
       casePack: pack,
@@ -102,7 +107,7 @@ const FS = (() => {
       gate. We never render MSRP where a net price belongs. */
   function netPrice(p, qty) {
     const u = user();
-    if (!u) return null;
+    if (!u || p.priceOnRequest) return null;
     const eligible = p.tiers_usd.filter(t => qty >= t.min_qty);
     const t = eligible.length ? eligible[eligible.length - 1] : p.tiers_usd[0];
     return t.unit_usd;

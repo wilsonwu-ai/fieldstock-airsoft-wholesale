@@ -254,7 +254,7 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* Each visual assembly maps to a real catalog category. We pick a concrete SKU
    from products.json at load so prices and links are real, never invented. */
 const PARTS = [
-  { key:'upper',   name:'Upper receiver',   axis:[0, .55,0], match:{cat:'Parts & Accessories', kw:['receiver','upper','body']} },
+  { key:'upper',   name:'Upper receiver',   axis:[0, .55,0], match:{cat:'Parts & Accessories', kw:['receiver','upper']} },
   { key:'lower',   name:'Lower receiver',   axis:[0,-.55,0], match:{cat:'Parts & Accessories', kw:['lower','receiver','frame']} },
   { key:'handguard',name:'Handguard / rail',axis:[0, .30,.55],match:{cat:'Parts & Accessories', kw:['rail','handguard','ras','m-lok','mlok']} },
   { key:'barrel',  name:'Inner + outer barrel', axis:[1.6,0,0], match:{cat:'Parts & Accessories', kw:['barrel']} },
@@ -607,14 +607,29 @@ document.getElementById('resetView').addEventListener('click', () => {
 const readout = document.getElementById('readout');
 let RESOLVED = [];
 
+const usedSkus = new Set();
+
 function pickSku(all, m){
-  const pool = all.filter(p => p.category === m.cat);
+  // The model is an AR-platform AEG, so parts must come from the Raven side and
+  // must carry a published price — a component priced "on request" makes the
+  // build total meaningless.
+  const pool = all.filter(p =>
+    p.category === m.cat && !p.priceOnRequest && p.brand === 'Raven Evolution');
   const scored = pool.map(p => {
-    const n = (p.name + ' ' + p.subcategory).toLowerCase();
-    let s = 0; m.kw.forEach((k,i) => { if (n.includes(k)) s += (m.kw.length - i); });
+    const name = p.name.toLowerCase();
+    let s = 0;
+    m.kw.forEach((k, i) => { if (name.includes(k)) s += (m.kw.length - i) * 2; });
+    if (!s && p.subcategory) {
+      const sub = p.subcategory.toLowerCase();
+      m.kw.forEach((k, i) => { if (sub.includes(k)) s += (m.kw.length - i); });
+    }
+    if (usedSkus.has(p.id)) s -= 100;         // never show the same SKU twice
     return { p, s };
-  }).filter(x => x.s > 0).sort((a,b) => b.s - a.s || a.p.msrp_usd - b.p.msrp_usd);
-  return scored.length ? scored[0].p : (pool[0] || all[0]);
+  }).filter(x => x.s > 0).sort((a, b) => b.s - a.s || a.p.msrp_usd - b.p.msrp_usd);
+
+  const hit = scored.length ? scored[0].p : null;
+  if (hit) usedSkus.add(hit.id);
+  return hit;
 }
 
 function select(key){
@@ -622,8 +637,21 @@ function select(key){
   applyEmphasis();
   document.querySelectorAll('.part-btn').forEach(b =>
     b.setAttribute('aria-pressed', String(b.dataset.key === selected)));
+  if (!selected){ readout.classList.remove('show'); return; }
   const rec = RESOLVED.find(r => r.key === selected);
-  if (!rec){ readout.classList.remove('show'); return; }
+  if (!rec){
+    // Clicked a part of the model we do not stock as its own line. Say so
+    // rather than silently doing nothing.
+    const def = PARTS.find(x => x.key === selected);
+    document.getElementById('roSku').textContent = '—';
+    document.getElementById('roName').textContent = def ? def.name : 'Component';
+    document.getElementById('roDesc').textContent =
+      'Not stocked as a separate line. Supplied as part of the complete unit.';
+    document.getElementById('roPrice').textContent = '';
+    document.getElementById('roLink').href = 'catalog.html';
+    readout.classList.add('show');
+    return;
+  }
   const p = rec.product;
   document.getElementById('roSku').textContent = p.sku;
   document.getElementById('roName').textContent = rec.name;
